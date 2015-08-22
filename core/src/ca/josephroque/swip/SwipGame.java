@@ -1,5 +1,6 @@
 package ca.josephroque.swip;
 
+import ca.josephroque.swip.screen.GameScreen;
 import ca.josephroque.swip.screen.MainMenuScreen;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
@@ -22,6 +23,8 @@ public class SwipGame
 
     /** Instance of the main menu. */
     private MainMenuScreen mainMenuScreen;
+    /** Instance of the game. */
+    private GameScreen gameScreen;
 
     /** Current state of the game. */
     private SwipState currentState;
@@ -36,6 +39,7 @@ public class SwipGame
 
         // Getting singleton instances of the screens
         mainMenuScreen = MainMenuScreen.getInstance(this);
+        gameScreen = GameScreen.getInstance(this);
 
         // Opens the main menu when the application begins
         setState(SwipState.MainMenu);
@@ -64,7 +68,7 @@ public class SwipGame
                 super.setScreen(mainMenuScreen);
                 break;
             case Game:
-                // super.setScreen(gameScreen);
+                super.setScreen(gameScreen);
                 break;
             case GameOver:
                 // super.setScreen(gameOverScreen);
