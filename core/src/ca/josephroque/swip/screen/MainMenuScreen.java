@@ -6,19 +6,12 @@ import ca.josephroque.swip.SwipGame;
  * Displays a main menu when the user begins the app. Provides options such as starting a new game, viewing high
  * scores...
  */
-public class MainMenuScreen
+public final class MainMenuScreen
         extends SwipScreen
 {
 
-    /**
-     * Passes parameters to super constructor.
-     *
-     * @param game instance of game
-     */
-    public MainMenuScreen(SwipGame game)
-    {
-        super(game);
-    }
+    /** Singleton instance of the main menu. */
+    private static MainMenuScreen sInstance;
 
     @Override
     public void show()
@@ -36,5 +29,29 @@ public class MainMenuScreen
     public void hide()
     {
 
+    }
+
+    /**
+     * Gets a singleton instance of the main menu. Creates a new instance if one is not currently available.
+     *
+     * @param game the current game
+     * @return instance of {@code MainMenuScreen}
+     */
+    public static MainMenuScreen getInstance(SwipGame game)
+    {
+        if (sInstance == null)
+            sInstance = new MainMenuScreen(game);
+
+        return sInstance;
+    }
+
+    /**
+     * Passes parameters to super constructor.
+     *
+     * @param game instance of game
+     */
+    private MainMenuScreen(SwipGame game)
+    {
+        super(game);
     }
 }
