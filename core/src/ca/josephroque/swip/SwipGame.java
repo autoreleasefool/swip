@@ -17,29 +17,20 @@ public class SwipGame
 {
 
     /** Primary camera of the game. */
-    private OrthographicCamera camera;
+    private OrthographicCamera mPrimaryCamera;
     /** Default viewport of the game. */
-    private Viewport viewport;
-
-    /** Instance of the main menu. */
-    private MainMenuScreen mainMenuScreen;
-    /** Instance of the game. */
-    private GameScreen gameScreen;
+    private Viewport mPrimaryViewport;
 
     /** Current state of the game. */
-    private SwipState currentState;
+    private SwipState mCurrentState;
 
     @Override
     public void create()
     {
         // Setting up the game rendering
-        camera = new OrthographicCamera();
-        viewport = new ScreenViewport(camera);
-        viewport.apply(true);
-
-        // Getting singleton instances of the screens
-        mainMenuScreen = MainMenuScreen.getInstance(this);
-        gameScreen = GameScreen.getInstance(this);
+        mPrimaryCamera = new OrthographicCamera();
+        mPrimaryViewport = new ScreenViewport(mPrimaryCamera);
+        mPrimaryViewport.apply(true);
 
         // Opens the main menu when the application begins
         setState(SwipState.MainMenu);
@@ -58,17 +49,17 @@ public class SwipGame
      */
     public void setState(SwipState nextState)
     {
-        if (currentState == nextState)
+        if (mCurrentState == nextState)
             return;
 
-        currentState = nextState;
+        mCurrentState = nextState;
         switch (nextState)
         {
             case MainMenu:
-                super.setScreen(mainMenuScreen);
+                super.setScreen(new MainMenuScreen(this));
                 break;
             case Game:
-                super.setScreen(gameScreen);
+                super.setScreen(new GameScreen(this));
                 break;
             case GameOver:
                 // super.setScreen(gameOverScreen);

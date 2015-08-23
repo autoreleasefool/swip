@@ -10,9 +10,6 @@ public final class MainMenuScreen
         extends SwipScreen
 {
 
-    /** Singleton instance of the main menu. */
-    private static MainMenuScreen sInstance;
-
     @Override
     public void show()
     {
@@ -32,25 +29,11 @@ public final class MainMenuScreen
     }
 
     /**
-     * Gets a singleton instance of the main menu. Creates a new instance if one is not currently available.
-     *
-     * @param game the current game
-     * @return instance of {@code MainMenuScreen}
-     */
-    public static MainMenuScreen getInstance(SwipGame game)
-    {
-        if (sInstance == null)
-            sInstance = new MainMenuScreen(game);
-
-        return sInstance;
-    }
-
-    /**
      * Passes parameters to super constructor.
      *
      * @param game instance of game
      */
-    private MainMenuScreen(SwipGame game)
+    public MainMenuScreen(SwipGame game)
     {
         super(game);
     }
