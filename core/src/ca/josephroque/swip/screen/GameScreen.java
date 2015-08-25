@@ -9,6 +9,7 @@ import com.badlogic.gdx.utils.TimeUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Handles the logic and rendering of gameplay.
@@ -27,10 +28,13 @@ public final class GameScreen
     /** Height of the screen. */
     private float mScreenHeight;
 
+    private Random mRandomGen = new Random();
+
     private Color[] mWallColors;
     private List<Color> mPotentialColors;
     private long mLastColorChangeTime = -1;
     private int mNextColor = 0;
+    private int randomWall = 0;
 
     @Override
     public void tick()
@@ -44,6 +48,7 @@ public final class GameScreen
                 if (mNextColor == mPotentialColors.size())
                     mNextColor = 0;
             }
+            randomWall = mRandomGen.nextInt(NUMBER_OF_WALLS);
         }
 
         if (Gdx.input.justTouched())
@@ -59,8 +64,13 @@ public final class GameScreen
         mShapeRenderer.setProjectionMatrix(getSwipGame().getCameraCombinedMatrix());
 
         final float wallSize = Math.min(mScreenWidth, mScreenHeight) * 0.1f;
+        final float ballSize = Math.min(mScreenWidth, mScreenHeight) * 0.075f;
 
         mShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        // Ball
+        mShapeRenderer.setColor(mWallColors[randomWall]);
+        mShapeRenderer.circle(mScreenWidth / 2, mScreenHeight / 2, ballSize);
 
         // Top wall
         mShapeRenderer.setColor(mWallColors[0]);
