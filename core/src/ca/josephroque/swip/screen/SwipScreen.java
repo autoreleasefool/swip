@@ -11,7 +11,10 @@ public abstract class SwipScreen
 {
 
     /** The current instance of the game. */
-    private SwipGame swipGame;
+    private SwipGame mSwipGame;
+
+    /** Indicates if the screen has been disposed. */
+    boolean mWasDisposed;
 
     /**
      * Stores a reference to the parameter provided.
@@ -20,7 +23,7 @@ public abstract class SwipScreen
      */
     public SwipScreen(SwipGame game)
     {
-        this.swipGame = game;
+        this.mSwipGame = game;
     }
 
     @Override
@@ -60,12 +63,24 @@ public abstract class SwipScreen
     }
 
     /**
+     * Updates the game logic.
+     */
+    abstract void tick();
+
+    /**
+     * Draws the game to the screen.
+     *
+     * @param delta delta time
+     */
+    abstract void draw(float delta);
+
+    /**
      * Gets the current {@code SwipGame}.
      *
-     * @return {@code swipGame}
+     * @return {@code mSwipGame}
      */
     SwipGame getSwipGame()
     {
-        return swipGame;
+        return mSwipGame;
     }
 }

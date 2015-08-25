@@ -3,8 +3,11 @@ package ca.josephroque.swip;
 import ca.josephroque.swip.screen.GameScreen;
 import ca.josephroque.swip.screen.MainMenuScreen;
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -27,19 +30,52 @@ public class SwipGame
     @Override
     public void create()
     {
+        final float screenWidth = Gdx.graphics.getWidth();
+        final float screenHeight = Gdx.graphics.getHeight();
+
         // Setting up the game rendering
         mPrimaryCamera = new OrthographicCamera();
+        mPrimaryCamera.translate(screenWidth / 2, screenHeight / 2);
+        mPrimaryCamera.setToOrtho(true, screenWidth, screenHeight);
         mPrimaryViewport = new ScreenViewport(mPrimaryCamera);
-        mPrimaryViewport.apply(true);
+        mPrimaryViewport.apply();
 
         // Opens the main menu when the application begins
         setState(SwipState.MainMenu);
     }
 
     @Override
+    public void resize(int width, int height)
+    {
+        mPrimaryViewport.update(width, height);
+    }
+
+    @Override
+    public void render()
+    {
+        mPrimaryCamera.update();
+
+        // Clear the screen to white
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
+
+        super.render();
+    }
+
+    @Override
     public final void setScreen(Screen newScreen)
     {
         throw new IllegalStateException("You should instead use SwipGame.setState(SwipState)");
+    }
+
+    /**
+     * Gets {@link com.badlogic.gdx.graphics.OrthographicCamera#combined} from {@code mPrimaryCamera}.
+     *
+     * @return {@code mPrimaryCamera.combined}
+     */
+    public Matrix4 getCameraCombinedMatrix()
+    {
+        return mPrimaryCamera.combined;
     }
 
     /**
