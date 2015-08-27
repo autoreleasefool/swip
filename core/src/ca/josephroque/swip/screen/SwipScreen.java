@@ -14,7 +14,7 @@ public abstract class SwipScreen
     private SwipGame mSwipGame;
 
     /** Indicates if the screen has been disposed. */
-    boolean mWasDisposed;
+    private boolean mWasDisposed;
 
     /**
      * Stores a reference to the parameter provided.
@@ -73,6 +73,23 @@ public abstract class SwipScreen
      * @param delta delta time
      */
     abstract void draw(float delta);
+
+    /**
+     * Gets whether this screen is going to be disposed.
+     * @return the value of {@code mWasDisposed}
+     */
+    boolean wasDisposed()
+    {
+        return mWasDisposed;
+    }
+
+    /**
+     * Marks the screen to be disposed.
+     */
+    void disposeEventually()
+    {
+        mWasDisposed = true;
+    }
 
     /**
      * Gets the current {@code SwipGame}.

@@ -41,14 +41,13 @@ public final class MainMenuScreen
         mSpriteBatch.setProjectionMatrix(getSwipGame().getCameraCombinedMatrix());
 
         mSpriteBatch.begin();
-        mBitmapFont.draw(mSpriteBatch, "Start", 0, 0);
+        mBitmapFont.draw(mSpriteBatch, "Start", 100, 100);
         mSpriteBatch.end();
     }
 
     @Override
     public void show()
     {
-        mWasDisposed = false;
         mScreenWidth = Gdx.graphics.getWidth();
         mScreenHeight = Gdx.graphics.getHeight();
 
@@ -62,14 +61,14 @@ public final class MainMenuScreen
     {
         tick();
 
-        if (!mWasDisposed)
+        if (!wasDisposed())
             draw(delta);
     }
 
     @Override
     public void dispose()
     {
-        mWasDisposed = true;
+        disposeEventually();
 
         // Disposing objects
         mShapeRenderer.dispose();

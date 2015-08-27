@@ -36,7 +36,7 @@ public class SwipGame
         // Setting up the game rendering
         mPrimaryCamera = new OrthographicCamera();
         mPrimaryCamera.translate(screenWidth / 2, screenHeight / 2);
-        mPrimaryCamera.setToOrtho(true, screenWidth, screenHeight);
+        mPrimaryCamera.setToOrtho(false, screenWidth, screenHeight);
         mPrimaryViewport = new ScreenViewport(mPrimaryCamera);
         mPrimaryViewport.apply();
 

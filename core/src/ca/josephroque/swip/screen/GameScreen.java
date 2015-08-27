@@ -1,9 +1,12 @@
 package ca.josephroque.swip.screen;
 
 import ca.josephroque.swip.SwipGame;
+import ca.josephroque.swip.gesture.GameGestureListener;
+import ca.josephroque.swip.util.Timing;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.utils.TimeUtils;
 
 import java.util.ArrayList;
@@ -18,28 +21,49 @@ public final class GameScreen
         extends SwipScreen
 {
 
+    /** Maximum number of walls. */
     private static final int NUMBER_OF_WALLS = 4;
+
+    /** Represents the left wall. */
+    private static final byte LEFT_WALL = 0;
+    /** Represents the top wall. */
+    private static final byte TOP_WALL = 1;
+    /** Represents the right wall. */
+    private static final byte RIGHT_WALL = 2;
+    /** Represents the bottom wall. */
+    private static final byte BOTTOM_WALL = 3;
 
     /** Allows rendering of basic shapes on the screen. */
     private ShapeRenderer mShapeRenderer;
+    /** Handles gesture input events. */
+    private GameGestureListener mGestureListener;
 
     /** Width of the screen. */
     private float mScreenWidth;
     /** Height of the screen. */
     private float mScreenHeight;
 
+    /** Random number generator. */
     private Random mRandomGen = new Random();
 
+    /** Current color of each of the walls. */
     private Color[] mWallColors;
+    /** List of possible colors. */
     private List<Color> mPotentialColors;
+    /** Number of milliseconds that has passed since the colors last changed. */
     private long mLastColorChangeTime = -1;
+    /** Next color in the list to use for a wall. */
     private int mNextColor = 0;
+    /** Randomly selected wall which the ball will match. */
     private int randomWall = 0;
+
+    /** Color to indicate fling gesture detected. */
+    private Color mGestureIndicatorColor;
 
     @Override
     public void tick()
     {
-        if (TimeUtils.timeSinceMillis(mLastColorChangeTime) >= 1000)
+        if (TimeUtils.timeSinceMillis(mLastColorChangeTime) >= Timing.MILLISECONDS_IN_A_SECOND)
         {
             mLastColorChangeTime = TimeUtils.millis();
             for (int i = 0; i < mWallColors.length; i++)
@@ -51,10 +75,23 @@ public final class GameScreen
             randomWall = mRandomGen.nextInt(NUMBER_OF_WALLS);
         }
 
-        if (Gdx.input.justTouched())
+        byte fling = mGestureListener.consumeFling();
+        switch (fling)
         {
-            getSwipGame().setState(SwipGame.SwipState.Game);
-            dispose();
+            case GameGestureListener.LEFT_FLING:
+                mGestureIndicatorColor = Color.RED;
+                break;
+            case GameGestureListener.UP_FLING:
+                mGestureIndicatorColor = Color.BLUE;
+                break;
+            case GameGestureListener.RIGHT_FLING:
+                mGestureIndicatorColor = Color.GREEN;
+                break;
+            case GameGestureListener.DOWN_FLING:
+                mGestureIndicatorColor = Color.YELLOW;
+                break;
+            default:
+                mGestureIndicatorColor = null;
         }
     }
 
@@ -72,25 +109,37 @@ public final class GameScreen
         mShapeRenderer.setColor(mWallColors[randomWall]);
         mShapeRenderer.circle(mScreenWidth / 2, mScreenHeight / 2, ballSize);
 
-        // Top wall
-        mShapeRenderer.setColor(mWallColors[0]);
+        // Bottom wall
+        mShapeRenderer.setColor(mWallColors[TOP_WALL]);
         mShapeRenderer.rect(0, 0, mScreenWidth, wallSize);
 
-        // Bottom wall
-        mShapeRenderer.setColor(mWallColors[1]);
+        // Top wall
+        mShapeRenderer.setColor(mWallColors[BOTTOM_WALL]);
         mShapeRenderer.rect(0, mScreenHeight - wallSize, mScreenWidth, wallSize);
 
         // Left wall
-        mShapeRenderer.setColor(mWallColors[2]);
+        mShapeRenderer.setColor(mWallColors[LEFT_WALL]);
         mShapeRenderer.rect(0, wallSize, wallSize, mScreenHeight - 2 * wallSize);
         mShapeRenderer.triangle(0, 0, 0, wallSize, wallSize, wallSize);
         mShapeRenderer.triangle(0, mScreenHeight, 0, mScreenHeight - wallSize, wallSize, mScreenHeight - wallSize);
 
         // Right wall
-        mShapeRenderer.setColor(mWallColors[3]);
+        mShapeRenderer.setColor(mWallColors[RIGHT_WALL]);
         mShapeRenderer.rect(mScreenWidth - wallSize, wallSize, wallSize, mScreenHeight - 2 * wallSize);
         mShapeRenderer.triangle(mScreenWidth, 0, mScreenWidth, wallSize, mScreenWidth - wallSize, wallSize);
-        mShapeRenderer.triangle(mScreenWidth, mScreenHeight, mScreenWidth, mScreenHeight - wallSize, mScreenWidth - wallSize, mScreenHeight - wallSize);
+        mShapeRenderer.triangle(mScreenWidth,
+                mScreenHeight,
+                mScreenWidth,
+                mScreenHeight - wallSize,
+                mScreenWidth - wallSize,
+                mScreenHeight - wallSize);
+
+        // Gesture indicator
+        if (mGestureIndicatorColor != null)
+        {
+            mShapeRenderer.setColor(mGestureIndicatorColor);
+            mShapeRenderer.rect(wallSize, wallSize, wallSize, wallSize);
+        }
 
         mShapeRenderer.end();
     }
@@ -98,11 +147,15 @@ public final class GameScreen
     @Override
     public void show()
     {
-        mWasDisposed = false;
         mScreenWidth = Gdx.graphics.getWidth();
         mScreenHeight = Gdx.graphics.getHeight();
 
         mShapeRenderer = new ShapeRenderer();
+
+        // Creating gesture handler
+        mGestureListener = new GameGestureListener();
+        GestureDetector gestureDetector = new GestureDetector(mGestureListener);
+        Gdx.input.setInputProcessor(gestureDetector);
 
         // Setting up colors for walls
         mPotentialColors = new ArrayList<>();
@@ -129,14 +182,14 @@ public final class GameScreen
     {
         tick();
 
-        if (!mWasDisposed)
+        if (!wasDisposed())
             draw(delta);
     }
 
     @Override
     public void hide()
     {
-        mWasDisposed = true;
+        disposeEventually();
 
         // Disposing objects
         mShapeRenderer.dispose();
