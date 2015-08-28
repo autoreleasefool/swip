@@ -107,7 +107,9 @@ public final class GameScreen
 
         // Ball
         mShapeRenderer.setColor(mWallColors[randomWall]);
-        mShapeRenderer.circle(mScreenWidth / 2, mScreenHeight / 2, ballSize);
+        mShapeRenderer.circle(mGestureListener.getLastFingerX(),
+                mScreenHeight - mGestureListener.getLastFingerY(),
+                ballSize);
 
         // Bottom wall
         mShapeRenderer.setColor(mWallColors[TOP_WALL]);

@@ -28,6 +28,31 @@ public class GameGestureListener
     /** Indicates if the user provided an up fling. */
     private boolean mFlungUp;
 
+    /** Last recorded x location on screen of a finger. */
+    private float mLastFingerX;
+    /** Last recorded y location on screen of a finger. */
+    private float mLastFingerY;
+
+    /**
+     * Returns last known x location of finger on screen.
+     *
+     * @return {@code mLastFingerX}
+     */
+    public float getLastFingerX()
+    {
+        return mLastFingerX;
+    }
+
+    /**
+     * Returns last known y location of finger on screen.
+     *
+     * @return {@code mLastFingerY}
+     */
+    public float getLastFingerY()
+    {
+        return mLastFingerY;
+    }
+
     /**
      * Gets the most recent fling event and consumes it.
      *
@@ -95,6 +120,8 @@ public class GameGestureListener
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY)
     {
+        mLastFingerX = x;
+        mLastFingerY = y;
         return false;
     }
 
