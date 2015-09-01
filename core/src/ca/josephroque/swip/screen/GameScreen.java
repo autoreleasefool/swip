@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.utils.TimeUtils;
 
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -30,6 +29,8 @@ public final class GameScreen
     private float mScreenWidth;
     /** Height of the screen. */
     private float mScreenHeight;
+    /** The current state the game is in. */
+    private GameState mCurrentGameState;
 
     /** Random number generator. */
     private Random mRandomGen = new Random();
@@ -61,12 +62,11 @@ public final class GameScreen
         {
             mLastColorChangeTime = TimeUtils.millis();
             Wall.getRandomWallColors(mRandomGen, mWallColors, false);
-            for (int i = 0; i < mWallColors.length; i++)
             mWallForBall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
         }
 
-        byte fling = mGestureListener.consumeFling();
-        attemptToFling(fling);
+        GameGestureListener.FlingDirection flingDirection = mGestureListener.consumeFling();
+        attemptToFling(flingDirection);
 
         if (!mFlinging) {
             Ball.getLocationForBall(mScreenWidth / 2,
@@ -87,7 +87,7 @@ public final class GameScreen
 
         mShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        Ball.drawBallAndTimer(mShapeRenderer, mWallColors[0], mBallPosition[0], mBallPosition[1], ballSize, 360f);
+        Ball.drawBallAndTimer(mShapeRenderer, mWallColors[mWallForBall], mBallPosition[0], mBallPosition[1], ballSize, 360f);
         Wall.drawWalls(mShapeRenderer, mWallColors, mScreenWidth, mScreenHeight, wallSize);
 
         mShapeRenderer.end();
@@ -97,6 +97,7 @@ public final class GameScreen
     public void show() {
         mScreenWidth = Gdx.graphics.getWidth();
         mScreenHeight = Gdx.graphics.getHeight();
+        mCurrentGameState = GameState.Starting;
 
         mShapeRenderer = new ShapeRenderer();
 
@@ -134,29 +135,29 @@ public final class GameScreen
      *
      * @param flingDirection direction of the fling
      */
-    private void attemptToFling(byte flingDirection) {
+    private void attemptToFling(GameGestureListener.FlingDirection flingDirection) {
         // User has already flung ball
         if (mFlinging)
             return;
 
         final float wallSize = Wall.getWallSize(mScreenWidth, mScreenHeight);
         switch (flingDirection) {
-            case GameGestureListener.LEFT_FLING:
+            case LEFT:
                 mFlinging = true;
                 mFlingTargetLocation[0] = wallSize;
                 mFlingTargetLocation[1] = mScreenHeight / 2;
                 break;
-            case GameGestureListener.UP_FLING:
+            case UP:
                 mFlinging = true;
                 mFlingTargetLocation[0] = mScreenWidth / 2;
                 mFlingTargetLocation[1] = mScreenHeight - wallSize;
                 break;
-            case GameGestureListener.RIGHT_FLING:
+            case RIGHT:
                 mFlinging = true;
                 mFlingTargetLocation[0] = mScreenWidth - wallSize;
                 mFlingTargetLocation[1] = mScreenHeight / 2;
                 break;
-            case GameGestureListener.DOWN_FLING:
+            case DOWN:
                 mFlinging = true;
                 mFlingTargetLocation[0] = mScreenWidth / 2;
                 mFlingTargetLocation[1] = wallSize;

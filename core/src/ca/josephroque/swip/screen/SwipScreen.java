@@ -7,8 +7,7 @@ import com.badlogic.gdx.Screen;
  * Provides default methods for creating a {@link com.badlogic.gdx.Screen}.
  */
 public abstract class SwipScreen
-        implements Screen
-{
+        implements Screen {
 
     /** The current instance of the game. */
     private SwipGame mSwipGame;
@@ -21,44 +20,37 @@ public abstract class SwipScreen
      *
      * @param game instance of game
      */
-    public SwipScreen(SwipGame game)
-    {
+    public SwipScreen(SwipGame game) {
         this.mSwipGame = game;
     }
 
     @Override
-    public void resize(int width, int height)
-    {
+    public void resize(int width, int height) {
         // does nothing
     }
 
     @Override
-    public void show()
-    {
+    public void show() {
         // does nothing
     }
 
     @Override
-    public void hide()
-    {
+    public void hide() {
         // does nothing
     }
 
     @Override
-    public void pause()
-    {
+    public void pause() {
         // does nothing
     }
 
     @Override
-    public void resume()
-    {
+    public void resume() {
         // does nothing
     }
 
     @Override
-    public void dispose()
-    {
+    public void dispose() {
         // does nothing
     }
 
@@ -76,18 +68,17 @@ public abstract class SwipScreen
 
     /**
      * Gets whether this screen is going to be disposed.
+     *
      * @return the value of {@code mWasDisposed}
      */
-    boolean wasDisposed()
-    {
+    boolean wasDisposed() {
         return mWasDisposed;
     }
 
     /**
      * Marks the screen to be disposed.
      */
-    void disposeEventually()
-    {
+    void disposeEventually() {
         mWasDisposed = true;
     }
 
@@ -96,8 +87,7 @@ public abstract class SwipScreen
      *
      * @return {@code mSwipGame}
      */
-    SwipGame getSwipGame()
-    {
+    SwipGame getSwipGame() {
         return mSwipGame;
     }
 }

@@ -16,8 +16,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  * instances.
  */
 public class SwipGame
-        extends Game
-{
+        extends Game {
 
     /** Primary camera of the game. */
     private OrthographicCamera mPrimaryCamera;
@@ -28,8 +27,7 @@ public class SwipGame
     private SwipState mCurrentState;
 
     @Override
-    public void create()
-    {
+    public void create() {
         final float screenWidth = Gdx.graphics.getWidth();
         final float screenHeight = Gdx.graphics.getHeight();
 
@@ -45,15 +43,13 @@ public class SwipGame
     }
 
     @Override
-    public void resize(int width, int height)
-    {
+    public void resize(int width, int height) {
         super.resize(width, height);
         mPrimaryViewport.update(width, height);
     }
 
     @Override
-    public void render()
-    {
+    public void render() {
         mPrimaryCamera.update();
 
         // Clear the screen to white
@@ -64,8 +60,7 @@ public class SwipGame
     }
 
     @Override
-    public final void setScreen(Screen newScreen)
-    {
+    public final void setScreen(Screen newScreen) {
         throw new IllegalStateException("You should instead use SwipGame.setState(SwipState)");
     }
 
@@ -74,8 +69,7 @@ public class SwipGame
      *
      * @return {@code mPrimaryCamera.combined}
      */
-    public Matrix4 getCameraCombinedMatrix()
-    {
+    public Matrix4 getCameraCombinedMatrix() {
         return mPrimaryCamera.combined;
     }
 
@@ -84,14 +78,12 @@ public class SwipGame
      *
      * @param nextState new state
      */
-    public void setState(SwipState nextState)
-    {
+    public void setState(SwipState nextState) {
         if (mCurrentState == nextState)
             return;
 
         mCurrentState = nextState;
-        switch (nextState)
-        {
+        switch (nextState) {
             case MainMenu:
                 super.setScreen(new MainMenuScreen(this));
                 break;
@@ -109,8 +101,7 @@ public class SwipGame
     /**
      * Possible states of the application.
      */
-    public enum SwipState
-    {
+    public enum SwipState {
         /** Represents the game being in a main menu. */
         MainMenu,
         /** Represents the game being in an active state - i.e. being played. */

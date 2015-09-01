@@ -3,8 +3,7 @@ package ca.josephroque.swip.util;
 /**
  * Constants for determining the timing of events in the application.
  */
-public final class Timing
-{
+public final class Timing {
 
     /** Number of milliseconds in a second. */
     public static final int MILLISECONDS_IN_A_SECOND = 1000;
@@ -12,8 +11,7 @@ public final class Timing
     /**
      * Default private constructor.
      */
-    private Timing()
-    {
+    private Timing() {
         // does nothing
     }
 }
