@@ -10,6 +10,11 @@ public class GameGestureListener
         implements GestureDetector.GestureListener
 {
 
+    /** Width of the screen. */
+    private int mScreenWidth;
+    /** Height of the screen. */
+    private int mScreenHeight;
+
     /** Represents a "left fling" gesture. */
     public static final byte LEFT_FLING = 0;
     /** Represents an "up fling" gesture. */
@@ -34,7 +39,7 @@ public class GameGestureListener
     private float mLastFingerY;
 
     /**
-     * Returns last known x location of finger on screen.
+     * Returns last known x location of finger on screen. Origin is the left of the screen.
      *
      * @return {@code mLastFingerX}
      */
@@ -44,13 +49,25 @@ public class GameGestureListener
     }
 
     /**
-     * Returns last known y location of finger on screen.
+     * Returns last known y location of finger on screen. Origin is the bottom of the screen.
      *
      * @return {@code mLastFingerY}
      */
     public float getLastFingerY()
     {
-        return mLastFingerY;
+        return mScreenHeight - mLastFingerY;
+    }
+
+    /**
+     * Updates size of the screen.
+     *
+     * @param width new width of the screen
+     * @param height new height of the screen
+     */
+    public void resize(int width, int height)
+    {
+        this.mScreenWidth = width;
+        this.mScreenHeight = height;
     }
 
     /**
@@ -102,6 +119,16 @@ public class GameGestureListener
     @Override
     public boolean touchDown(float x, float y, int pointer, int button)
     {
+        mLastFingerX = x;
+        mLastFingerY = y;
+        return false;
+    }
+
+    @Override
+    public boolean pan(float x, float y, float deltaX, float deltaY)
+    {
+        mLastFingerX = x;
+        mLastFingerY = y;
         return false;
     }
 
@@ -114,14 +141,6 @@ public class GameGestureListener
     @Override
     public boolean longPress(float x, float y)
     {
-        return false;
-    }
-
-    @Override
-    public boolean pan(float x, float y, float deltaX, float deltaY)
-    {
-        mLastFingerX = x;
-        mLastFingerY = y;
         return false;
     }
 

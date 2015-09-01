@@ -47,6 +47,7 @@ public class SwipGame
     @Override
     public void resize(int width, int height)
     {
+        super.resize(width, height);
         mPrimaryViewport.update(width, height);
     }
 
