@@ -30,7 +30,7 @@ public class Ball
     private static final Color BALL_TIMER_COLOR = new Color(0, 0, 0, 0.25f);
 
     /** Default radius of the ball. */
-    private static int sDefaultBallRadius;
+    private static float sDefaultBallRadius;
     /** Indicates if the static ball properties have been initialized. */
     private static boolean sBallsInitialized = false;
 
@@ -142,7 +142,7 @@ public class Ball
      * @param screenHeight height of the screen
      */
     public static void initialize(int screenWidth, int screenHeight) {
-        sDefaultBallRadius = (int) (Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER);
+        sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
         sBallsInitialized = true;
     }
 }

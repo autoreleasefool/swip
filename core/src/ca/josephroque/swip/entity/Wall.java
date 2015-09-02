@@ -6,9 +6,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import java.util.*;
 
 /**
- * Methods and constants for manipulating walls in the game.
+ * Edges of the screen which provide targets for the balls to pass through.
  */
-public final class Wall {
+public class Wall
+        extends Entity {
 
     /** Identifies output from this class in the logcat. */
     @SuppressWarnings("unused")
@@ -16,13 +17,27 @@ public final class Wall {
 
     /** Maximum number of walls. */
     public static final int NUMBER_OF_WALLS = 4;
+
     /** Number of turns that must pass before a new color is added to the game. */
     public static final int NUMBER_OF_TURNS_BEFORE_NEW_COLOR = 8;
     /** Number of turns that must pass before two walls can be the same color. */
     public static final int NUMBER_OF_TURNS_BEFORE_SAME_WALL_COLORS = 20;
-
     /** Used to determine size of walls as a percentage of the screen size. */
     private static final float WALL_SIZE_MULTIPLIER = 0.1f;
+
+    /** Array of the possible values for {@code Side}. */
+    private static final Side[] POSSIBLE_SIDES = Side.values();
+
+    /** Default width of a wall. */
+    private static float sDefaultWallSize;
+    /** Width of the screen. */
+    private static float sScreenWidth;
+    /** Height of the screen. */
+    private static float sScreenHeight;
+    /** Indicates if the static wall properties have been initialized. */
+    private static boolean sWallsInitialized = false;
+    /** Indicates the last wall that was drawn, to ensure walls are drawn in the correct order. */
+    private static int sLastWallDrawn;
 
     /** All possible colors which a wall can be. */
     private static final Color[] ALL_POSSIBLE_WALL_COLORS = {
@@ -43,120 +58,164 @@ public final class Wall {
     /** List of the current active colors, a subset of {@code ALL_POSSIBLE_WALL_COLORS}. */
     private static List<Color> sListActiveColors = new ArrayList<>(ALL_POSSIBLE_WALL_COLORS.length);
 
+    /** The side of the screen which this wall represents. */
+    private final Side mWallSide;
+    /** Color of the wall. */
+    private Color mWallColor;
+
     /**
-     * Draws the left wall on the screen.
+     * Initializes a new wall by converting the provided int to a {@code Side}.
      *
-     * @param shapeRenderer graphics context to draw to
-     * @param wallColor color of wall
-     * @param screenHeight height of the screen, to allow wall to fill screen
-     * @param wallSize width of the wall
+     * @param wallSide side of the screen
      */
-    private static void drawLeftWall(ShapeRenderer shapeRenderer,
-                                     Color wallColor,
-                                     float screenHeight,
-                                     float wallSize) {
-        shapeRenderer.setColor(wallColor);
-        shapeRenderer.rect(0, wallSize, wallSize, screenHeight - 2 * wallSize);
-        shapeRenderer.triangle(0, 0, 0, wallSize, wallSize, wallSize);
-        shapeRenderer.triangle(0, screenHeight, 0, screenHeight - wallSize, wallSize, screenHeight - wallSize);
+    public Wall(int wallSide) {
+        this(POSSIBLE_SIDES[wallSide]);
     }
 
     /**
-     * Draws the top wall on the screen.
+     * Initializes a new wall with the given side.
      *
-     * @param shapeRenderer graphics context to draw to
-     * @param wallColor color of wall
-     * @param screenWidth width of the screen, to allow wall to fill screen
-     * @param screenHeight height of the screen, to allow wall to be drawn at maximum height
-     * @param wallSize width of the wall
+     * @param wallSide side of the screen
      */
-    private static void drawTopWall(ShapeRenderer shapeRenderer,
-                                    Color wallColor,
-                                    float screenWidth,
-                                    float screenHeight,
-                                    float wallSize) {
-        shapeRenderer.setColor(wallColor);
-        shapeRenderer.rect(0, screenHeight - wallSize, screenWidth, wallSize);
+    public Wall(Side wallSide) {
+        mWallSide = wallSide;
+    }
+
+    @Override
+    public void tick(float delta) {
+        // does nothing
     }
 
     /**
-     * Draws the right wall on the screen.
+     * Draws this wall to the screen in its position as determined by {@code mWallSide}.
      *
      * @param shapeRenderer graphics context to draw to
-     * @param wallColor color of wall
-     * @param screenWidth width of the screen, to allow wall wall to be drawn at maximum width
-     * @param screenHeight height of the screen, to allow wall to fill screen
-     * @param wallSize width of the wall
      */
-    private static void drawRightWall(ShapeRenderer shapeRenderer,
-                                      Color wallColor,
-                                      float screenWidth,
-                                      float screenHeight,
-                                      float wallSize) {
-        shapeRenderer.setColor(wallColor);
-        shapeRenderer.rect(screenWidth - wallSize, wallSize, wallSize, screenHeight - 2 * wallSize);
-        shapeRenderer.triangle(screenWidth, 0, screenWidth, wallSize, screenWidth - wallSize, wallSize);
-        shapeRenderer.triangle(screenWidth,
-                screenHeight,
-                screenWidth,
-                screenHeight - wallSize,
-                screenWidth - wallSize,
-                screenHeight - wallSize);
-    }
-
-    /**
-     * Draws the bottom wall on the screen.
-     *
-     * @param shapeRenderer graphics context to draw to
-     * @param wallColor color of wall
-     * @param screenWidth width of the screen, to allow wall to fill screen
-     * @param wallSize width of the wall
-     */
-    private static void drawBottomWall(ShapeRenderer shapeRenderer,
-                                       Color wallColor,
-                                       float screenWidth,
-                                       float wallSize) {
-        shapeRenderer.setColor(wallColor);
-        shapeRenderer.rect(0, 0, screenWidth, wallSize);
-    }
-
-    /**
-     * Draws all for walls to the given graphics context using the specified properties. ShapeRenderer should be drawing
-     * type {@code ShapeType.Filled}.
-     *
-     * @param shapeRenderer graphics context to draw to
-     * @param wallColors color of the four walls, specified using the values {@code LEFT_WALL}, {@code TOP_WALL}, {@code
-     * RIGHT_WALL}, and {@code BOTTOM_WALL}
-     * @param screenWidth width of the screen
-     * @param screenHeight height of the screen
-     * @param wallSize width / height of the walls to draw (for vertical and horizontal walls, respectively)
-     */
-    public static void drawWalls(ShapeRenderer shapeRenderer,
-                                 Color[] wallColors,
-                                 float screenWidth,
-                                 float screenHeight,
-                                 float wallSize) {
+    public void draw(ShapeRenderer shapeRenderer) {
         if (!shapeRenderer.isDrawing())
             throw new IllegalStateException("shape renderer must be drawing");
-        else
-            if (shapeRenderer.getCurrentType() != ShapeRenderer.ShapeType.Filled)
-                throw new IllegalStateException("shape renderer must be using ShapeType.Filled");
+        else if (shapeRenderer.getCurrentType() != ShapeRenderer.ShapeType.Filled)
+            throw new IllegalStateException("shape renderer must be using ShapeType.Filled");
 
-        drawBottomWall(shapeRenderer, wallColors[Sides.Bottom.ordinal()], screenWidth, wallSize);
-        drawTopWall(shapeRenderer, wallColors[Sides.Top.ordinal()], screenWidth, screenHeight, wallSize);
-        drawLeftWall(shapeRenderer, wallColors[Sides.Left.ordinal()], screenHeight, wallSize);
-        drawRightWall(shapeRenderer, wallColors[Sides.Right.ordinal()], screenWidth, screenHeight, wallSize);
+        if (mWallSide.ordinal() != sLastWallDrawn + 1)
+            throw new IllegalStateException("must draw walls in the natural order determined by Wall.Side");
+        sLastWallDrawn = mWallSide.ordinal();
+
+        switch (mWallSide) {
+            case Left:
+                drawLeftWall(shapeRenderer);
+                break;
+            case Top:
+                drawTopWall(shapeRenderer);
+                break;
+            case Right:
+                // Reset last wall drawn, since all walls should have been drawn now
+                sLastWallDrawn = -1;
+                drawRightWall(shapeRenderer);
+                break;
+            case Bottom:
+                drawBottomWall(shapeRenderer);
+                break;
+            default:
+                // does nothing
+        }
     }
 
     /**
-     * Calculates the size of walls based on the smallest screen dimension.
+     * Draws a wall on the left side of the screen.
+     *
+     * @param shapeRenderer graphics context to draw to
+     */
+    private void drawLeftWall(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(mWallColor);
+        shapeRenderer.rect(0, sDefaultWallSize, sDefaultWallSize, sScreenHeight - sDefaultWallSize * 2);
+        shapeRenderer.triangle(0, 0, 0, sDefaultWallSize, sDefaultWallSize, sDefaultWallSize);
+        shapeRenderer.triangle(0,
+                sScreenHeight,
+                0,
+                sScreenHeight - sDefaultWallSize,
+                sDefaultWallSize,
+                sScreenHeight - sDefaultWallSize);
+    }
+
+    /**
+     * Draws a wall on the right side of the screen.
+     *
+     * @param shapeRenderer graphics context to draw to
+     */
+    private void drawRightWall(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(mWallColor);
+        shapeRenderer.rect(sScreenWidth - sDefaultWallSize,
+                sDefaultWallSize,
+                sDefaultWallSize,
+                sScreenHeight - 2 * sDefaultWallSize);
+        shapeRenderer.triangle(sScreenWidth,
+                0,
+                sScreenWidth,
+                sDefaultWallSize,
+                sScreenWidth - sDefaultWallSize,
+                sDefaultWallSize);
+        shapeRenderer.triangle(sScreenWidth,
+                sScreenHeight,
+                sScreenWidth,
+                sScreenHeight - sDefaultWallSize,
+                sScreenWidth - sDefaultWallSize,
+                sScreenHeight - sDefaultWallSize);
+    }
+
+    /**
+     * Draws a wall on the bottom edge of the screen.
+     *
+     * @param shapeRenderer graphics context to draw to
+     */
+    private void drawBottomWall(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(mWallColor);
+        shapeRenderer.rect(0, 0, sScreenWidth, sDefaultWallSize);
+    }
+
+    /**
+     * Draws a wall on the top edge of the screen.
+     *
+     * @param shapeRenderer graphics context to draw to
+     */
+    private void drawTopWall(ShapeRenderer shapeRenderer) {
+        shapeRenderer.setColor(mWallColor);
+        shapeRenderer.rect(0, sScreenHeight - sDefaultWallSize, sScreenWidth, sDefaultWallSize);
+    }
+
+    /**
+     * Updates the color of the wall.
+     *
+     * @param wallColor new value for {@code mWallColor}
+     */
+    public void updateWallColor(Color wallColor) {
+        mWallColor = wallColor;
+    }
+
+    /**
+     * Initializes static values common for all walls. Must be called before creating any instances of this object, and
+     * should be called any time the screen is resized.
      *
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
-     * @return size to use for walls
      */
-    public static float getWallSize(float screenWidth, float screenHeight) {
-        return Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
+    public static void initialize(int screenWidth, int screenHeight) {
+        sListActiveColors.clear();
+        sListActiveColors.addAll(Arrays.asList(ALL_POSSIBLE_WALL_COLORS).subList(0, NUMBER_OF_WALLS));
+
+        sLastWallDrawn = -1;
+        sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
+        sScreenWidth = screenWidth;
+        sScreenHeight = screenHeight;
+        sWallsInitialized = true;
+    }
+
+    /**
+     * Adds a new color from {@code ALL_POSSIBLE_WALL_COLORS} to the current active wall colors.
+     */
+    public static void addWallColorToActive() {
+        if (sListActiveColors.size() < ALL_POSSIBLE_WALL_COLORS.length)
+            sListActiveColors.add(ALL_POSSIBLE_WALL_COLORS[sListActiveColors.size()]);
     }
 
     /**
@@ -167,8 +226,10 @@ public final class Wall {
      * @param wallColors array to return colors. Must be of length 4.
      * @param allowSame if true, up to 2 walls may be the same color. If false, all walls will be different colors.
      * Chance of two walls being the same is determined by {@code CHANCE_OF_SAME_WALL_COLOR}.
+     * @return if there are two walls the same color, then the value returned is the index of the first of the pair. If
+     * there are no two walls the same, this method returns -1
      */
-    public static void getRandomWallColors(Random random, Color[] wallColors, boolean allowSame) {
+    public static int getRandomWallColors(Random random, Color[] wallColors, boolean allowSame) {
         if (wallColors.length != NUMBER_OF_WALLS)
             throw new IllegalArgumentException("color array must have length 4");
 
@@ -190,43 +251,32 @@ public final class Wall {
             }
 
             wallColors[wallToChange] = wallColors[wallToChangeTo];
+            return Math.min(wallToChange, wallToChangeTo);
         }
+
+        return -1;
     }
 
     /**
-     * Adds a new color from {@code ALL_POSSIBLE_WALL_COLORS} to the current active wall colors.
+     * Gets the default size of a wall.
+     *
+     * @return {@code sDefaultWallSize}
      */
-    public static void addWallColorToActive() {
-        if (sListActiveColors.size() < ALL_POSSIBLE_WALL_COLORS.length)
-            sListActiveColors.add(ALL_POSSIBLE_WALL_COLORS[sListActiveColors.size()]);
+    public static float getDefaultWallSize() {
+        return sDefaultWallSize;
     }
 
     /**
-     * Adds initial colors to {@code sListActiveColors}.
+     * Represents the four edges of the screen.
      */
-    public static void initializeActiveColors() {
-        sListActiveColors.clear();
-        sListActiveColors.addAll(Arrays.asList(ALL_POSSIBLE_WALL_COLORS).subList(0, NUMBER_OF_WALLS));
-    }
-
-    /**
-     * Represents the four walls.
-     */
-    private enum Sides {
-        /** The left wall. */
-        Left,
+    private enum Side {
         /** The top wall. */
         Top,
-        /** The right wall. */
-        Right,
         /** The bottom wall. */
         Bottom,
-    }
-
-    /**
-     * Default private constructor.
-     */
-    private Wall() {
-        // does nothing
+        /** The left wall. */
+        Left,
+        /** The right wall. */
+        Right,
     }
 }

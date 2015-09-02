@@ -54,9 +54,10 @@ public final class GameScreen
 
     /** The ball being used by the game. */
     private Ball mCurrentBall;
-
-    /** Current color of each of the walls. */
-    private Color[] mWallColors = new Color[Wall.NUMBER_OF_WALLS];
+    /** The four walls in the game. */
+    private Wall[] mWalls;
+    /** Colors of the four walls. */
+    private Color[] mWallColors;
 
     /** Indicates if the user has flung the ball. */
     private boolean mFlinging;
@@ -157,6 +158,9 @@ public final class GameScreen
         mScreenWidth = width;
         mScreenHeight = height;
         mGestureListener.resize(width, height);
+
+        Wall.initialize(mScreenWidth, mScreenHeight);
+        Ball.initialize(mScreenWidth, mScreenHeight);
     }
 
     /**
@@ -170,14 +174,23 @@ public final class GameScreen
         mTotalTurns = 0;
         mGameStartTime = TimeUtils.millis();
 
-        Wall.initializeActiveColors();
+        // Setting initial properties of entities
+        Ball.initialize(mScreenWidth, mScreenHeight);
+        Wall.initialize(mScreenWidth, mScreenHeight);
+
+        // Creating the four walls
+        mWallColors = new Color[Wall.NUMBER_OF_WALLS];
         Wall.getRandomWallColors(mRandomGen, mWallColors, false);
+        mWalls = new Wall[Wall.NUMBER_OF_WALLS];
+        for (int i = 0; i < mWalls.length; i++) {
+            mWalls[i] = new Wall(i);
+            mWalls[i].updateWallColor(mWallColors[i]);
+        }
 
         // Creating the ball
         final int randomWall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
         final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
         passableWalls[randomWall] = true;
-        Ball.initialize(mScreenWidth, mScreenHeight);
         mCurrentBall = new Ball(mWallColors[randomWall], passableWalls);
     }
 
@@ -235,12 +248,11 @@ public final class GameScreen
      * @param delta delta time
      */
     private void drawActiveGame(float delta) {
-        final float wallSize = Wall.getWallSize(mScreenWidth, mScreenHeight);
-
         mShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         mCurrentBall.draw(mShapeRenderer, mTurnLength, mCurrentTurnDuration);
-        Wall.drawWalls(mShapeRenderer, mWallColors, mScreenWidth, mScreenHeight, wallSize);
+        for (Wall wall : mWalls)
+            wall.draw(mShapeRenderer);
 
         mShapeRenderer.end();
     }
@@ -271,7 +283,7 @@ public final class GameScreen
         if (mFlinging)
             return;
 
-        final float wallSize = Wall.getWallSize(mScreenWidth, mScreenHeight);
+        final float wallSize = Wall.getDefaultWallSize();
         final float ballSize = Ball.getDefaultBallSize();
         switch (flingDirection) {
             case Left:
@@ -321,13 +333,25 @@ public final class GameScreen
         if (mTotalTurns % Wall.NUMBER_OF_TURNS_BEFORE_NEW_COLOR == 0)
             Wall.addWallColorToActive();
 
-        Wall.getRandomWallColors(mRandomGen, mWallColors, mTotalTurns > Wall.NUMBER_OF_TURNS_BEFORE_SAME_WALL_COLORS);
+        int wallPairFirstIndex = Wall.getRandomWallColors(mRandomGen,
+                mWallColors,
+                mTotalTurns > Wall.NUMBER_OF_TURNS_BEFORE_SAME_WALL_COLORS);
+        for (int i = 0; i < mWalls.length; i++)
+                mWalls[i].updateWallColor(mWallColors[i]);
 
         // Generating new ball at center of screen
-        final int randomWall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
+        final int randomWall;
         final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
-        for (int i = 0; i < passableWalls.length; i++)
-            passableWalls[i] = (mWallColors[i].equals(mWallColors[randomWall]));
+        if (wallPairFirstIndex == -1) {
+            randomWall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
+            passableWalls[randomWall] = true;
+        } else {
+            randomWall = wallPairFirstIndex;
+            passableWalls[randomWall] = true;
+            for (int i = randomWall + 1; i < Wall.NUMBER_OF_WALLS; i++)
+                passableWalls[randomWall] = mWallColors[randomWall].equals(mWallColors[i]);
+        }
+
         mCurrentBall = new Ball(mWallColors[randomWall], passableWalls);
 
         if (mTotalTurns % NUMBER_OF_TURNS_BEFORE_DECREMENT == 0)
