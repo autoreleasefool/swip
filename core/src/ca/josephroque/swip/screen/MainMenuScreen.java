@@ -16,7 +16,7 @@ public final class MainMenuScreen
     private int mScreenHeight;
 
     @Override
-    public void tick() {
+    public void tick(float delta) {
         if (Gdx.input.justTouched()) {
             getSwipGame().setState(SwipGame.SwipState.Game);
             dispose();
@@ -24,7 +24,7 @@ public final class MainMenuScreen
     }
 
     @Override
-    public void draw(float delta) {
+    public void draw() {
     }
 
     @Override
@@ -35,10 +35,10 @@ public final class MainMenuScreen
 
     @Override
     public void render(float delta) {
-        tick();
+        tick(delta);
 
         if (!wasDisposed())
-            draw(delta);
+            draw();
     }
 
     @Override

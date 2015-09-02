@@ -22,7 +22,7 @@ public class Ball
     /** Maximum percentage of ball size to move ball away from origin. */
     private static final float MAXIMUM_BALL_OFFSET = 0.1f;
     /** Number of milliseconds the ball will take to scale up. */
-    public static final float BALL_SCALE_TIME = 100;
+    public static final float BALL_SCALE_TIME = 100f;
     /** Used to determine size of the ball as a percentage of the screen size. */
     private static final float BALL_SIZE_MULTIPLIER = 0.075f;
 
@@ -48,14 +48,18 @@ public class Ball
      *
      * @param ballColor color of the ball
      * @param passableWalls walls which the ball can pass through
+     * @param x starting horizontal position of the ball
+     * @param y starting vertical position of the ball
      */
-    public Ball(Color ballColor, boolean[] passableWalls) {
+    public Ball(Color ballColor, boolean[] passableWalls, float x, float y) {
         if (!sBallsInitialized)
             throw new IllegalStateException("Must call initialize before creating any instances");
 
         mTimeCreated = TimeUtils.millis();
         mBallColor = ballColor;
         mPassableWalls = passableWalls;
+        setX(x);
+        setY(y);
     }
 
     @Override
@@ -113,7 +117,7 @@ public class Ball
                                  int currentTurnLength) {
         final float degrees = -(currentTurnLength / (float) maxTurnLength) * MAX_OVERLAY_DEGREES;
         shapeRenderer.setColor(BALL_TIMER_COLOR);
-        shapeRenderer.arc(getX(), getY(), ballSize, OVERLAY_STARTING_DEGREE, degrees);
+        shapeRenderer.arc(getX(), getY(), ballSize, OVERLAY_STARTING_DEGREE, degrees, 100);
     }
 
     /**

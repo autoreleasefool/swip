@@ -7,6 +7,7 @@ import ca.josephroque.swip.gesture.GameGestureListener;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -83,17 +84,17 @@ public final class GameScreen
     private int mTotalTurns;
 
     @Override
-    public void tick() {
+    public void tick(float delta) {
         switch (mCurrentGameState) {
             case Starting:
-                tickStartingGame();
+                tickStartingGame(delta);
                 break;
             case Active:
             case Paused:
-                tickActiveGame();
+                tickActiveGame(delta);
                 break;
             case GameOver:
-                tickGameOver();
+                tickGameOver(delta);
                 break;
             default:
                 // does nothing
@@ -101,19 +102,19 @@ public final class GameScreen
     }
 
     @Override
-    public void draw(float delta) {
+    public void draw() {
         mShapeRenderer.setProjectionMatrix(getSwipGame().getCameraCombinedMatrix());
 
         switch (mCurrentGameState) {
             case Starting:
-                drawStartingGame(delta);
+                drawStartingGame();
                 break;
             case Active:
             case Paused:
-                drawActiveGame(delta);
+                drawActiveGame();
                 break;
             case GameOver:
-                drawGameOver(delta);
+                drawGameOver();
                 break;
             default:
                 // does nothing
@@ -139,10 +140,10 @@ public final class GameScreen
 
     @Override
     public void render(float delta) {
-        tick();
+        tick(delta);
 
         if (!wasDisposed())
-            draw(delta);
+            draw();
     }
 
     @Override
@@ -191,35 +192,41 @@ public final class GameScreen
         final int randomWall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
         final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
         passableWalls[randomWall] = true;
-        mCurrentBall = new Ball(mWallColors[randomWall], passableWalls);
+        mCurrentBall = new Ball(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
     }
 
     /**
      * Updates the logic for a game that is starting.
+     *
+     * @param delta delta time
      */
-    private void tickStartingGame() {
+    private void tickStartingGame(float delta) {
         // Counts down timer to start of game
-        if (TimeUtils.timeSinceMillis(mGameStartTime) >= TIME_UNTIL_GAME_STARTS)
+        if (TimeUtils.timeSinceMillis(mGameStartTime) >= TIME_UNTIL_GAME_STARTS) {
+            mGestureListener.consumeFling();
             mCurrentGameState = GameState.Active;
+        }
     }
 
     /**
      * Draws a game which is preparing to start.
-     *
-     * @param delta delta time
      */
-    private void drawStartingGame(float delta) {
+    private void drawStartingGame() {
 
     }
 
     /**
      * Updates the logic for a game that is active or paused.
+     *
+     * @param delta delta time
      */
-    private void tickActiveGame() {
+    private void tickActiveGame(float delta) {
         if (mCurrentGameState != GameState.Paused) {
             if (mStartOfTurn == 0)
                 mStartOfTurn = TimeUtils.millis();
             mCurrentTurnDuration = (int) TimeUtils.timeSinceMillis(mStartOfTurn);
+
+            mCurrentBall.tick(delta);
 
             if (mCurrentTurnDuration >= mTurnLength) {
                 mCurrentGameState = GameState.GameOver;
@@ -244,32 +251,33 @@ public final class GameScreen
 
     /**
      * Draws a game which is active or paused.
-     *
-     * @param delta delta time
      */
-    private void drawActiveGame(float delta) {
+    private void drawActiveGame() {
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         mShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        mCurrentBall.draw(mShapeRenderer, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
             wall.draw(mShapeRenderer);
+        mCurrentBall.draw(mShapeRenderer, mTurnLength, mCurrentTurnDuration);
 
         mShapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     /**
      * Updates the logic for a game that has ended.
+     *
+     * @param delta delta time
      */
-    private void tickGameOver() {
+    private void tickGameOver(float delta) {
 
     }
 
     /**
      * Draws a game that has ended.
-     *
-     * @param delta delta time
      */
-    private void drawGameOver(float delta) {
+    private void drawGameOver() {
 
     }
 
@@ -352,7 +360,7 @@ public final class GameScreen
                 passableWalls[randomWall] = mWallColors[randomWall].equals(mWallColors[i]);
         }
 
-        mCurrentBall = new Ball(mWallColors[randomWall], passableWalls);
+        mCurrentBall = new Ball(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
 
         if (mTotalTurns % NUMBER_OF_TURNS_BEFORE_DECREMENT == 0)
             mTurnLength = Math.max(MINIMUM_TURN_LENGTH, mTurnLength - TURN_LENGTH_DECREMENT);

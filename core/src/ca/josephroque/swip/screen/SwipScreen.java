@@ -56,15 +56,15 @@ public abstract class SwipScreen
 
     /**
      * Updates the game logic.
-     */
-    abstract void tick();
-
-    /**
-     * Draws the game to the screen.
      *
      * @param delta delta time
      */
-    abstract void draw(float delta);
+    abstract void tick(float delta);
+
+    /**
+     * Draws the game to the screen.
+     */
+    abstract void draw();
 
     /**
      * Gets whether this screen is going to be disposed.
