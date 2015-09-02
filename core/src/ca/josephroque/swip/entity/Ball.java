@@ -1,5 +1,7 @@
 package ca.josephroque.swip.entity;
 
+import ca.josephroque.swip.gesture.GameGestureListener;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -25,6 +27,8 @@ public class Ball
     public static final float BALL_SCALE_TIME = 100f;
     /** Used to determine size of the ball as a percentage of the screen size. */
     private static final float BALL_SIZE_MULTIPLIER = 0.075f;
+    /** Number of milliseconds that a fling lasts. */
+    private static final float FLING_TIME = 100;
 
     /** Color of the overlay to represent time remaining in a turn. */
     private static final Color BALL_TIMER_COLOR = new Color(0, 0, 0, 0.25f);
@@ -42,6 +46,27 @@ public class Ball
     private final Color mBallColor;
     /** Indicates the walls which the ball can pass through. */
     private final boolean[] mPassableWalls;
+
+    /**
+     * If false, the ball should slow as it nears its target. If true, its speed should not decrease as it approaches
+     * its target.
+     */
+    private boolean mOvershootTarget;
+    /** Horizontal location which the ball should head towards. */
+    private float mTargetLocationX;
+    /** Vertical location which the ball should head towards. */
+    private float mTargetLocationY;
+
+    /** Indicates if the user has flung the ball. */
+    private boolean mFlinging;
+    /** Indicates if a fling has been recently completed. */
+    private boolean mFlingCompleted;
+    /** Starting horizontal location of a fling. */
+    private float mFlingStartX;
+    /** Starting vertical location of a fling. */
+    private float mFlingStartY;
+    /** Time in milliseconds of the start of the fling. */
+    private long mFlingStartTime;
 
     /**
      * Prepares a new ball object.
@@ -71,6 +96,74 @@ public class Ball
             mScale = Math.min(1f, Math.max(0f, timeSinceCreated / BALL_SCALE_TIME));
         else
             mScale = 1f;
+
+        if (mFlinging) {
+            long timeSinceFlingStart = TimeUtils.timeSinceMillis(mFlingStartTime);
+            if (timeSinceFlingStart >= FLING_TIME)
+                completeFling();
+        }
+    }
+
+    /**
+     * Checks if the user flung the ball and, if yes, starts a fling event.
+     *
+     * @param flingDirection direction of the fling
+     * @param screenWidth width of the screen
+     * @param screenHeight height of the screen
+     */
+    public void attemptToFling(GameGestureListener.FlingDirection flingDirection,
+                               float screenWidth,
+                               float screenHeight) {
+        // User has already flung ball
+        if (mFlinging)
+            return;
+
+        final float wallSize = Wall.getDefaultWallSize();
+        final float ballSize = Ball.getDefaultBallSize();
+        switch (flingDirection) {
+            case Left:
+                mFlinging = true;
+                mTargetLocationX = wallSize - ballSize;
+                mTargetLocationY = screenHeight / 2;
+                break;
+            case Up:
+                mFlinging = true;
+                mTargetLocationX = screenWidth / 2;
+                mTargetLocationY = screenHeight - wallSize + ballSize;
+                break;
+            case Right:
+                mFlinging = true;
+                mTargetLocationX = screenWidth - wallSize + ballSize;
+                mTargetLocationY = screenHeight / 2;
+                break;
+            case Down:
+                mFlinging = true;
+                mTargetLocationX = screenWidth / 2;
+                mTargetLocationY = wallSize - ballSize;
+                break;
+            default:
+                // does nothing
+        }
+
+        if (mFlinging) {
+            Gdx.app.debug(TAG, "Fling started");
+            mFlingStartTime = TimeUtils.millis();
+            mFlingStartX = getX();
+            mFlingStartY = getY();
+
+            setDeltaX((mTargetLocationX - mFlingStartX) / FLING_TIME);
+            setDeltaY((mTargetLocationY - mFlingStartY) / FLING_TIME);
+        }
+    }
+
+    /**
+     * Resolves a fling and increases a user's score.
+     */
+    private void completeFling() {
+        Gdx.app.debug(TAG, "Fling completed");
+
+        mFlinging = false;
+        mFlingCompleted = true;
     }
 
     /**
@@ -115,9 +208,21 @@ public class Ball
                                  float ballSize,
                                  int maxTurnLength,
                                  int currentTurnLength) {
+        // TODO: determine number of segments based on degrees
+        final int segments = 100;
         final float degrees = -(currentTurnLength / (float) maxTurnLength) * MAX_OVERLAY_DEGREES;
         shapeRenderer.setColor(BALL_TIMER_COLOR);
-        shapeRenderer.arc(getX(), getY(), ballSize, OVERLAY_STARTING_DEGREE, degrees, 100);
+        shapeRenderer.arc(getX(), getY(), ballSize, OVERLAY_STARTING_DEGREE, degrees, segments);
+    }
+
+    /**
+     * Checks if the ball can pass through the provided wall.
+     *
+     * @param wall wall to check
+     * @return {@code true} if the wall is passable, false otherwise
+     */
+    public boolean canPassThroughWall(int wall) {
+        return mPassableWalls[wall];
     }
 
     /**
@@ -127,6 +232,20 @@ public class Ball
      */
     public float getBallSize() {
         return sDefaultBallRadius * mScale;
+    }
+
+    /**
+     * Checks if a fling was completed, then consumes it.
+     *
+     * @return {@code true} if a fling was completed, {@code false} otherwise
+     */
+    public boolean isFlingComplete() {
+        if (mFlingCompleted) {
+            mFlingCompleted = false;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
