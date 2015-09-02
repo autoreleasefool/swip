@@ -271,7 +271,8 @@ public final class GameScreen
      * @param delta delta time
      */
     private void tickGameOver(float delta) {
-
+        if (Gdx.input.justTouched())
+            startNewGame();
     }
 
     /**
