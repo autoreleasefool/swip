@@ -43,24 +43,20 @@ public final class GameScreen
     private GameGestureListener mGestureListener;
 
     /** Width of the screen. */
-    private float mScreenWidth;
+    private int mScreenWidth;
     /** Height of the screen. */
-    private float mScreenHeight;
+    private int mScreenHeight;
     /** The current state the game is in. */
     private GameState mCurrentGameState;
 
     /** Random number generator. */
     private Random mRandomGen = new Random();
 
+    /** The ball being used by the game. */
+    private Ball mCurrentBall;
+
     /** Current color of each of the walls. */
     private Color[] mWallColors = new Color[Wall.NUMBER_OF_WALLS];
-
-    /** Current wall which the ball can pass through. */
-    private int mWallForBall;
-    /** Coordinates for the ball to be drawn at. */
-    private float[] mBallPosition = new float[2];
-    /** Time in milliseconds the ball began scaling up at. */
-    private long mScaleStartTime;
 
     /** Indicates if the user has flung the ball. */
     private boolean mFlinging;
@@ -173,11 +169,16 @@ public final class GameScreen
         mCurrentTurnDuration = 0;
         mTotalTurns = 0;
         mGameStartTime = TimeUtils.millis();
-        mScaleStartTime = TimeUtils.millis();
 
         Wall.initializeActiveColors();
         Wall.getRandomWallColors(mRandomGen, mWallColors, false);
-        mWallForBall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
+
+        // Creating the ball
+        final int randomWall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
+        final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
+        passableWalls[randomWall] = true;
+        Ball.initialize(mScreenWidth, mScreenHeight);
+        mCurrentBall = new Ball(mWallColors[randomWall], passableWalls);
     }
 
     /**
@@ -203,8 +204,6 @@ public final class GameScreen
      */
     private void tickActiveGame() {
         if (mCurrentGameState != GameState.Paused) {
-            final float ballSize = Ball.getBallSize(mScreenWidth, mScreenHeight, 1f);
-
             if (mStartOfTurn == 0)
                 mStartOfTurn = TimeUtils.millis();
             mCurrentTurnDuration = (int) TimeUtils.timeSinceMillis(mStartOfTurn);
@@ -215,16 +214,13 @@ public final class GameScreen
                 GameGestureListener.FlingDirection flingDirection = mGestureListener.consumeFling();
                 attemptToFling(flingDirection);
 
-                if (!mFlinging) {
-                    mBallPosition[0] = mScreenWidth / 2;
-                    mBallPosition[1] = mScreenHeight / 2;
-                } else {
+                if (mFlinging) {
                     long timeSinceFlingStart = TimeUtils.timeSinceMillis(mFlingStartTime);
                     if (timeSinceFlingStart < FLING_TIME) {
-                        mBallPosition[0] = mFlingStartLocation[0]
+                        /*mBallPosition[0] = mFlingStartLocation[0]
                                 + (TimeUtils.timeSinceMillis(mFlingStartTime) * mFlingVelocity[0]);
                         mBallPosition[1] = mFlingStartLocation[1]
-                                + (TimeUtils.timeSinceMillis(mFlingStartTime) * mFlingVelocity[1]);
+                                + (TimeUtils.timeSinceMillis(mFlingStartTime) * mFlingVelocity[1]);*/
                     } else {
                         completeFling();
                     }
@@ -239,22 +235,11 @@ public final class GameScreen
      * @param delta delta time
      */
     private void drawActiveGame(float delta) {
-        final float ballScale = (mScaleStartTime < Ball.BALL_SCALE_TIME)
-                ? Ball.getBallScale(mScaleStartTime)
-                : 1f;
         final float wallSize = Wall.getWallSize(mScreenWidth, mScreenHeight);
-        final float ballSize = Ball.getBallSize(mScreenWidth, mScreenHeight, ballScale);
 
         mShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        float degrees = Math.min((mCurrentTurnDuration * Ball.MAX_OVERLAY_DEGREES) / mTurnLength,
-                Ball.MAX_OVERLAY_DEGREES);
-        Ball.drawBallAndTimer(mShapeRenderer,
-                mWallColors[mWallForBall],
-                mBallPosition[0],
-                mBallPosition[1],
-                ballSize,
-                degrees);
+        mCurrentBall.draw(mShapeRenderer, mTurnLength, mCurrentTurnDuration);
         Wall.drawWalls(mShapeRenderer, mWallColors, mScreenWidth, mScreenHeight, wallSize);
 
         mShapeRenderer.end();
@@ -287,7 +272,7 @@ public final class GameScreen
             return;
 
         final float wallSize = Wall.getWallSize(mScreenWidth, mScreenHeight);
-        final float ballSize = Ball.getBallSize(mScreenWidth, mScreenHeight, 1f);
+        final float ballSize = Ball.getDefaultBallSize();
         switch (flingDirection) {
             case Left:
                 mFlinging = true;
@@ -316,8 +301,8 @@ public final class GameScreen
         if (mFlinging) {
             Gdx.app.debug(TAG, "Fling started");
             mFlingStartTime = TimeUtils.millis();
-            mFlingStartLocation[0] = mBallPosition[0];
-            mFlingStartLocation[1] = mBallPosition[1];
+            mFlingStartLocation[0] = mCurrentBall.getX();
+            mFlingStartLocation[1] = mCurrentBall.getY();
 
             mFlingVelocity[0] = (mFlingTargetLocation[0] - mFlingStartLocation[0]) / FLING_TIME;
             mFlingVelocity[1] = (mFlingTargetLocation[1] - mFlingStartLocation[1]) / FLING_TIME;
@@ -331,16 +316,19 @@ public final class GameScreen
         Gdx.app.debug(TAG, "Fling completed");
         mTotalTurns++;
         mFlinging = false;
-        mBallPosition[0] = mScreenWidth / 2;
-        mBallPosition[1] = mScreenHeight / 2;
-        mScaleStartTime = TimeUtils.millis();
         mStartOfTurn = TimeUtils.millis();
 
         if (mTotalTurns % Wall.NUMBER_OF_TURNS_BEFORE_NEW_COLOR == 0)
             Wall.addWallColorToActive();
 
         Wall.getRandomWallColors(mRandomGen, mWallColors, mTotalTurns > Wall.NUMBER_OF_TURNS_BEFORE_SAME_WALL_COLORS);
-        mWallForBall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
+
+        // Generating new ball at center of screen
+        final int randomWall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
+        final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
+        for (int i = 0; i < passableWalls.length; i++)
+            passableWalls[i] = (mWallColors[i].equals(mWallColors[randomWall]));
+        mCurrentBall = new Ball(mWallColors[randomWall], passableWalls);
 
         if (mTotalTurns % NUMBER_OF_TURNS_BEFORE_DECREMENT == 0)
             mTurnLength = Math.max(MINIMUM_TURN_LENGTH, mTurnLength - TURN_LENGTH_DECREMENT);
