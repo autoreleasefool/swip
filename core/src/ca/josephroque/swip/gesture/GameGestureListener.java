@@ -60,21 +60,18 @@ public class GameGestureListener
     /**
      * Gets the most recent fling event and consumes it.
      *
-     * @return the type of the most recent fling, or {@code FlingDirection.NONE} if there were no recent flings.
+     * @return the type of the most recent fling, or {@code FlingDirection.None} if there were no recent flings.
      */
     public FlingDirection consumeFling() {
-        FlingDirection direction = FlingDirection.NONE;
+        FlingDirection direction = FlingDirection.None;
         if (mFlungLeft)
-            direction = FlingDirection.LEFT;
-        else
-            if (mFlungUp)
-                direction = FlingDirection.UP;
-            else
-                if (mFlungRight)
-                    direction = FlingDirection.RIGHT;
-                else
-                    if (mFlungDown)
-                        direction = FlingDirection.DOWN;
+            direction = FlingDirection.Left;
+        else if (mFlungUp)
+            direction = FlingDirection.Up;
+        else if (mFlungRight)
+            direction = FlingDirection.Right;
+        else if (mFlungDown)
+            direction = FlingDirection.Down;
 
         mFlungLeft = false;
         mFlungUp = false;
@@ -145,14 +142,14 @@ public class GameGestureListener
      */
     public enum FlingDirection {
         /** Represents a fling left. */
-        LEFT,
+        Left,
         /** Represents a fling up. */
-        UP,
+        Up,
         /** Represents a fling right. */
-        RIGHT,
+        Right,
         /** Represents a fling down. */
-        DOWN,
+        Down,
         /** Represents a state of no fling from the user. */
-        NONE
+        None
     }
 }

@@ -2,6 +2,7 @@ package ca.josephroque.swip;
 
 import ca.josephroque.swip.screen.GameScreen;
 import ca.josephroque.swip.screen.MainMenuScreen;
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -28,6 +29,7 @@ public class SwipGame
 
     @Override
     public void create() {
+        Gdx.app.setLogLevel(Application.LOG_DEBUG);
         final float screenWidth = Gdx.graphics.getWidth();
         final float screenHeight = Gdx.graphics.getHeight();
 

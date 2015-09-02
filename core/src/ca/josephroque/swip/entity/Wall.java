@@ -3,10 +3,7 @@ package ca.josephroque.swip.entity;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Methods and constants for manipulating walls in the game.
@@ -19,6 +16,10 @@ public final class Wall {
 
     /** Maximum number of walls. */
     public static final int NUMBER_OF_WALLS = 4;
+    /** Number of turns that must pass before a new color is added to the game. */
+    public static final int NUMBER_OF_TURNS_BEFORE_NEW_COLOR = 8;
+    /** Number of turns that must pass before two walls can be the same color. */
+    public static final int NUMBER_OF_TURNS_BEFORE_SAME_WALL_COLORS = 20;
 
     /** Used to determine size of walls as a percentage of the screen size. */
     private static final float WALL_SIZE_MULTIPLIER = 0.1f;
@@ -141,10 +142,10 @@ public final class Wall {
             if (shapeRenderer.getCurrentType() != ShapeRenderer.ShapeType.Filled)
                 throw new IllegalStateException("shape renderer must be using ShapeType.Filled");
 
-        drawBottomWall(shapeRenderer, wallColors[Sides.BOTTOM.ordinal()], screenWidth, wallSize);
-        drawTopWall(shapeRenderer, wallColors[Sides.TOP.ordinal()], screenWidth, screenHeight, wallSize);
-        drawLeftWall(shapeRenderer, wallColors[Sides.LEFT.ordinal()], screenHeight, wallSize);
-        drawRightWall(shapeRenderer, wallColors[Sides.RIGHT.ordinal()], screenWidth, screenHeight, wallSize);
+        drawBottomWall(shapeRenderer, wallColors[Sides.Bottom.ordinal()], screenWidth, wallSize);
+        drawTopWall(shapeRenderer, wallColors[Sides.Top.ordinal()], screenWidth, screenHeight, wallSize);
+        drawLeftWall(shapeRenderer, wallColors[Sides.Left.ordinal()], screenHeight, wallSize);
+        drawRightWall(shapeRenderer, wallColors[Sides.Right.ordinal()], screenWidth, screenHeight, wallSize);
     }
 
     /**
@@ -201,17 +202,25 @@ public final class Wall {
     }
 
     /**
+     * Adds initial colors to {@code sListActiveColors}.
+     */
+    public static void initializeActiveColors() {
+        sListActiveColors.clear();
+        sListActiveColors.addAll(Arrays.asList(ALL_POSSIBLE_WALL_COLORS).subList(0, NUMBER_OF_WALLS));
+    }
+
+    /**
      * Represents the four walls.
      */
     private enum Sides {
         /** The left wall. */
-        LEFT,
+        Left,
         /** The top wall. */
-        TOP,
+        Top,
         /** The right wall. */
-        RIGHT,
+        Right,
         /** The bottom wall. */
-        BOTTOM,
+        Bottom,
     }
 
     /**

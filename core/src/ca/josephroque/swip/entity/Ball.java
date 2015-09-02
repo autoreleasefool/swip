@@ -2,6 +2,7 @@ package ca.josephroque.swip.entity;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.TimeUtils;
 
 /**
  * Methods and constants for manipulating balls in the game.
@@ -18,6 +19,8 @@ public final class Ball {
     private static final float MAXIMUM_BALL_OFFSET = 0.1f;
     /** Used to determine size of the ball as a percentage of the screen size. */
     private static final float BALL_SIZE_MULTIPLIER = 0.075f;
+    /** Number of milliseconds the ball will take to scale up. */
+    public static final float BALL_SCALE_TIME = 100;
 
     /** Color of the overlay to represent time remaining in a turn. */
     private static final Color BALL_TIMER_COLOR = new Color(0, 0, 0, 0.25f);
@@ -120,10 +123,21 @@ public final class Ball {
      *
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
+     * @param scale size scale for the ball
      * @return size to use for ball
      */
-    public static float getBallSize(float screenWidth, float screenHeight) {
-        return Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
+    public static float getBallSize(float screenWidth, float screenHeight, float scale) {
+        return Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER * scale;
+    }
+
+    /**
+     * Gets the scale to draw the ball at depending on the time that has passed.
+     *
+     * @param scaleStartTime time that ball scaling started
+     * @return scale between 0 and 1, inclusive
+     */
+    public static float getBallScale(long scaleStartTime) {
+        return Math.min(1f, Math.max(0f, TimeUtils.timeSinceMillis(scaleStartTime) / BALL_SCALE_TIME));
     }
 
     /**
