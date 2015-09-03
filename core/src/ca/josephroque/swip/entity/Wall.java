@@ -2,8 +2,13 @@ package ca.josephroque.swip.entity;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Edges of the screen which provide targets for the balls to pass through.
@@ -30,10 +35,6 @@ public class Wall
 
     /** Default width of a wall. */
     private static float sDefaultWallSize;
-    /** Width of the screen. */
-    private static float sScreenWidth;
-    /** Height of the screen. */
-    private static float sScreenHeight;
     /** Indicates if the static wall properties have been initialized. */
     private static boolean sWallsInitialized = false;
     /** Indicates the last wall that was drawn, to ensure walls are drawn in the correct order. */
@@ -67,23 +68,68 @@ public class Wall
      * Initializes a new wall by converting the provided int to a {@code Side}.
      *
      * @param wallSide side of the screen
+     * @param screenWidth width of the screen
+     * @param screenHeight height of the screen
      */
-    public Wall(int wallSide) {
-        this(POSSIBLE_SIDES[wallSide]);
+    public Wall(int wallSide, int screenWidth, int screenHeight) {
+        this(POSSIBLE_SIDES[wallSide], screenWidth, screenHeight);
     }
 
     /**
-     * Initializes a new wall with the given side.
+     * Initializes a new wall with the given side, then adjusts size of the wall to fit the screen.
      *
      * @param wallSide side of the screen
+     * @param screenWidth width of the screen
+     * @param screenHeight height of the screen
      */
-    public Wall(Side wallSide) {
+    public Wall(Side wallSide, int screenWidth, int screenHeight) {
+        super(0, 0, 0, 0);
+        if (!sWallsInitialized)
+            throw new IllegalStateException("Must call initialize before creating any instances");
+
         mWallSide = wallSide;
+        resize(screenWidth, screenHeight);
     }
 
     @Override
     public void tick(float delta) {
         // does nothing
+    }
+
+    @Override
+    public void resize(int screenWidth, int screenHeight) {
+        sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
+
+        // Resize wall based on screen dimensions
+        Rectangle boundingBox = getBoundingBox();
+        switch (mWallSide) {
+            case Top:
+                boundingBox.x = 0;
+                boundingBox.y = screenHeight - sDefaultWallSize;
+                boundingBox.width = screenWidth;
+                boundingBox.height = sDefaultWallSize;
+                break;
+            case Bottom:
+                boundingBox.x = 0;
+                boundingBox.y = 0;
+                boundingBox.width = screenWidth;
+                boundingBox.height = sDefaultWallSize;
+                break;
+            case Left:
+                boundingBox.x = 0;
+                boundingBox.y = 0;
+                boundingBox.width = sDefaultWallSize;
+                boundingBox.height = screenHeight;
+                break;
+            case Right:
+                boundingBox.x = screenWidth - sDefaultWallSize;
+                boundingBox.y = 0;
+                boundingBox.width = sDefaultWallSize;
+                boundingBox.height = screenHeight;
+                break;
+            default:
+                // does nothing
+        }
     }
 
     /**
@@ -102,19 +148,16 @@ public class Wall
         sLastWallDrawn = mWallSide.ordinal();
 
         switch (mWallSide) {
-            case Left:
-                drawLeftWall(shapeRenderer);
-                break;
             case Top:
-                drawTopWall(shapeRenderer);
+            case Bottom:
+                drawHorizontalWall(shapeRenderer);
                 break;
             case Right:
                 // Reset last wall drawn, since all walls should have been drawn now
                 sLastWallDrawn = -1;
-                drawRightWall(shapeRenderer);
-                break;
-            case Bottom:
-                drawBottomWall(shapeRenderer);
+            case Left:
+                drawVerticalWall(shapeRenderer);
+                drawEdgeSlants(shapeRenderer, mWallSide == Side.Left);
                 break;
             default:
                 // does nothing
@@ -122,65 +165,51 @@ public class Wall
     }
 
     /**
-     * Draws a wall on the left side of the screen.
+     * Draws a wall along the screen horizontally.
      *
      * @param shapeRenderer graphics context to draw to
      */
-    private void drawLeftWall(ShapeRenderer shapeRenderer) {
+    private void drawHorizontalWall(ShapeRenderer shapeRenderer) {
         shapeRenderer.setColor(mWallColor);
-        shapeRenderer.rect(0, sDefaultWallSize, sDefaultWallSize, sScreenHeight - sDefaultWallSize * 2);
-        shapeRenderer.triangle(0, 0, 0, sDefaultWallSize, sDefaultWallSize, sDefaultWallSize);
-        shapeRenderer.triangle(0,
-                sScreenHeight,
-                0,
-                sScreenHeight - sDefaultWallSize,
-                sDefaultWallSize,
-                sScreenHeight - sDefaultWallSize);
+        shapeRenderer.rect(getX(), getY(), getWidth(), getHeight());
     }
 
     /**
-     * Draws a wall on the right side of the screen.
+     * Draws a wall along the screen vertically, leaving room at the top and bottom.
      *
      * @param shapeRenderer graphics context to draw to
      */
-    private void drawRightWall(ShapeRenderer shapeRenderer) {
+    private void drawVerticalWall(ShapeRenderer shapeRenderer) {
         shapeRenderer.setColor(mWallColor);
-        shapeRenderer.rect(sScreenWidth - sDefaultWallSize,
-                sDefaultWallSize,
-                sDefaultWallSize,
-                sScreenHeight - 2 * sDefaultWallSize);
-        shapeRenderer.triangle(sScreenWidth,
-                0,
-                sScreenWidth,
-                sDefaultWallSize,
-                sScreenWidth - sDefaultWallSize,
-                sDefaultWallSize);
-        shapeRenderer.triangle(sScreenWidth,
-                sScreenHeight,
-                sScreenWidth,
-                sScreenHeight - sDefaultWallSize,
-                sScreenWidth - sDefaultWallSize,
-                sScreenHeight - sDefaultWallSize);
+        shapeRenderer.rect(getX(), getY() + sDefaultWallSize, getWidth(), getHeight() - sDefaultWallSize * 2);
     }
 
     /**
-     * Draws a wall on the bottom edge of the screen.
+     * Draws triangles at the top and bottom of the wall.
      *
      * @param shapeRenderer graphics context to draw to
+     * @param facingRight if true, the slanted edges of the triangles will face the right of the screen. If false, they
+     * will face the left.
      */
-    private void drawBottomWall(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(mWallColor);
-        shapeRenderer.rect(0, 0, sScreenWidth, sDefaultWallSize);
-    }
+    private void drawEdgeSlants(ShapeRenderer shapeRenderer, boolean facingRight) {
+        if (mWallSide == Side.Top || mWallSide == Side.Bottom)
+            throw new IllegalStateException("cannot draw slants on horizontal walls.");
 
-    /**
-     * Draws a wall on the top edge of the screen.
-     *
-     * @param shapeRenderer graphics context to draw to
-     */
-    private void drawTopWall(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(mWallColor);
-        shapeRenderer.rect(0, sScreenHeight - sDefaultWallSize, sScreenWidth, sDefaultWallSize);
+        float thirdVertexX = (facingRight)
+                ? getX()
+                : getX() + getWidth();
+        shapeRenderer.triangle(getX(),
+                getY() + sDefaultWallSize,
+                getX() + getWidth(),
+                getY() + sDefaultWallSize,
+                thirdVertexX,
+                getY());
+        shapeRenderer.triangle(getX(),
+                getY() + getHeight() - sDefaultWallSize,
+                getX() + getWidth(),
+                getY() + getHeight() - sDefaultWallSize,
+                thirdVertexX,
+                getY() + getHeight());
     }
 
     /**
@@ -205,8 +234,6 @@ public class Wall
 
         sLastWallDrawn = -1;
         sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
-        sScreenWidth = screenWidth;
-        sScreenHeight = screenHeight;
         sWallsInitialized = true;
     }
 
@@ -255,15 +282,6 @@ public class Wall
         }
 
         return -1;
-    }
-
-    /**
-     * Gets the default size of a wall.
-     *
-     * @return {@code sDefaultWallSize}
-     */
-    public static float getDefaultWallSize() {
-        return sDefaultWallSize;
     }
 
     /**

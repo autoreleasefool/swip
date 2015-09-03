@@ -26,13 +26,13 @@ public final class GameScreen
     private static final String TAG = "GameScreen";
 
     /** Number of milliseconds that a turn at the start of a game lasts. */
-    private static final int STARTING_TURN_LENGTH = 1000;
+    private static final int STARTING_TURN_LENGTH = 1200;
     /** Number of milliseconds to subtract from the length of a turn at a time. */
     private static final int TURN_LENGTH_DECREMENT = 50;
     /** Number of turns that must pass before the turn length is decremented. */
     private static final int NUMBER_OF_TURNS_BEFORE_DECREMENT = 10;
     /** Shortest number of milliseconds that a turn can last. */
-    private static final int MINIMUM_TURN_LENGTH = 100;
+    private static final int MINIMUM_TURN_LENGTH = 300;
     /** Default number of milliseconds until a game starts. */
     private static final int TIME_UNTIL_GAME_STARTS = 1000;
 
@@ -171,7 +171,7 @@ public final class GameScreen
         Wall.getRandomWallColors(mRandomGen, mWallColors, false);
         mWalls = new Wall[Wall.NUMBER_OF_WALLS];
         for (int i = 0; i < mWalls.length; i++) {
-            mWalls[i] = new Wall(i);
+            mWalls[i] = new Wall(i, mScreenWidth, mScreenHeight);
             mWalls[i].updateWallColor(mWallColors[i]);
         }
 
@@ -217,12 +217,7 @@ public final class GameScreen
                 mCurrentGameState = GameState.GameOver;
             } else {
                 GameGestureListener.FlingDirection flingDirection = mGestureListener.consumeFling();
-                mCurrentBall.attemptToFling(flingDirection, mScreenWidth, mScreenHeight);
                 mCurrentBall.tick(delta);
-
-                if (mCurrentBall.isFlingComplete()) {
-                    turnSucceeded();
-                }
             }
         }
     }
@@ -271,9 +266,9 @@ public final class GameScreen
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         mShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
+        mCurrentBall.draw(mShapeRenderer, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
             wall.draw(mShapeRenderer);
-        mCurrentBall.draw(mShapeRenderer, mTurnLength, mCurrentTurnDuration);
 
         mShapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);

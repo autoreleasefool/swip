@@ -1,5 +1,8 @@
 package ca.josephroque.swip.entity;
 
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
+
 /**
  * Objects which can appear in the game.
  */
@@ -9,14 +12,23 @@ public abstract class Entity {
     @SuppressWarnings("unused")
     private static final String TAG = "Entity";
 
-    /** Horizontal position of the ball. */
-    private float mX;
-    /** Vertical position of the ball. */
-    private float mY;
-    /** Horizontal velocity of the ball. */
-    private float mDeltaX;
-    /** Vertical velocity of the ball. */
-    private float mDeltaY;
+    /** Rectangular bounds of the object. */
+    private Rectangle mBoundingBox;
+    /** Velocity of the entity. */
+    private Vector2 mVelocity;
+
+    /**
+     * Creates a bounding box {@link com.badlogic.gdx.math.Rectangle} using the parameters.
+     *
+     * @param x horizontal position
+     * @param y vertical position
+     * @param width width
+     * @param height height
+     */
+    public Entity(float x, float y, float width, float height) {
+        mBoundingBox = new Rectangle(x, y, width, height);
+        mVelocity = new Vector2();
+    }
 
     /**
      * Updates the logic of the entity.
@@ -26,84 +38,83 @@ public abstract class Entity {
     public abstract void tick(float delta);
 
     /**
+     * Resizes the object relative to the screen dimensions.
+     *
+     * @param screenWidth width of the screen
+     * @param screenHeight height of the screen
+     */
+    public abstract void resize(int screenWidth, int screenHeight);
+
+    /**
      * Gets the entity's horizontal position.
      *
-     * @return {@code mX}
+     * @return horizontal position of bounding box
      */
     public float getX() {
-        return mX;
+        return mBoundingBox.getX();
     }
 
     /**
      * Gets the entity's vertical position.
      *
-     * @return {@code mY}
+     * @return vertical position of bounding box
      */
     public float getY() {
-        return mY;
+        return mBoundingBox.getY();
+    }
+
+    /**
+     * Gets the entity's width.
+     *
+     * @return {@code mBoundingBox.getWidth()}
+     */
+    public float getWidth() {
+        return mBoundingBox.getWidth();
+    }
+
+    /**
+     * Gets the entity's height.
+     *
+     * @return {@code mBoundingBox.getHeight()}
+     */
+    public float getHeight() {
+        return mBoundingBox.getHeight();
     }
 
     /**
      * Gets the entity's horizontal velocity.
      *
-     * @return {@code mDeltaX}
+     * @return x velocity
      */
-    public float getDeltaX() {
-        return mDeltaX;
+    public float getHorizVelocity() {
+        return mVelocity.x;
     }
 
     /**
      * Gets the entity's vertical velocity.
      *
-     * @return {@code mDeltaY}
+     * @return y velocity
      */
-    public float getDeltaY() {
-        return mDeltaY;
+    public float getVertVelocity() {
+        return mVelocity.y;
+    }
+
+    /**
+     * Gets the bounding box of the object. Can be used to manipulate the object's position and dimensions.
+     *
+     * @return {@code mBoundingBox}
+     */
+    public Rectangle getBoundingBox() {
+        return mBoundingBox;
     }
 
     /**
      * Updates the position of the ball by the velocities based on the {@code delta}.
      *
-     * @param delta number of seconds the previous time lasted
+     * @param delta number of seconds the previous tick lasted
      */
     void updatePosition(float delta) {
-        mX += mDeltaX * delta;
-        mY += mDeltaY * delta;
-    }
-
-    /**
-     * Sets a new value for the entity's horizontal position.
-     *
-     * @param x new horizontal position
-     */
-    void setX(float x) {
-        mX = x;
-    }
-
-    /**
-     * Sets a new value for the entity's vertical position.
-     *
-     * @param y new vertical position
-     */
-    void setY(float y) {
-        mY = y;
-    }
-
-    /**
-     * Set a new value for the entity's horizontal velocity.
-     *
-     * @param deltaX new horizontal velocity
-     */
-    void setDeltaX(float deltaX) {
-        mDeltaX = deltaX;
-    }
-
-    /**
-     * Set a new value for the entity's vertical velocity.
-     *
-     * @param deltaY new vertical velocity
-     */
-    void setDeltaY(float deltaY) {
-        mDeltaY = deltaY;
+        mBoundingBox.x += mVelocity.x;
+        mBoundingBox.y += mVelocity.y;
     }
 }
