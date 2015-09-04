@@ -1,6 +1,7 @@
 package ca.josephroque.swip.entity;
 
-import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Shape2D;
 import com.badlogic.gdx.math.Vector2;
 
 /**
@@ -12,23 +13,29 @@ public abstract class Entity {
     @SuppressWarnings("unused")
     private static final String TAG = "Entity";
 
-    /** Rectangular bounds of the object. */
-    private Rectangle mBoundingBox;
     /** Velocity of the entity. */
     private Vector2 mVelocity;
 
     /**
-     * Creates a bounding box {@link com.badlogic.gdx.math.Rectangle} using the parameters.
-     *
-     * @param x horizontal position
-     * @param y vertical position
-     * @param width width
-     * @param height height
+     * Initializes a new entity.
      */
-    public Entity(float x, float y, float width, float height) {
-        mBoundingBox = new Rectangle(x, y, width, height);
+    public Entity() {
         mVelocity = new Vector2();
     }
+
+    /**
+     * Evaluates the entity's logic.
+     *
+     * @param delta number of seconds the last rendering took
+     */
+    public abstract void tick(float delta);
+
+    /**
+     * Draws the object to the screen.
+     *
+     * @param shapeRenderer graphics context to draw to
+     */
+    public abstract void draw(ShapeRenderer shapeRenderer);
 
     /**
      * Adjust the size of the object relative to the screen dimensions.
@@ -41,38 +48,44 @@ public abstract class Entity {
     /**
      * Gets the entity's horizontal position.
      *
-     * @return horizontal position of bounding box
+     * @return horizontal position
      */
-    public float getX() {
-        return mBoundingBox.getX();
-    }
+    public abstract float getX();
 
     /**
      * Gets the entity's vertical position.
      *
-     * @return vertical position of bounding box
+     * @return vertical position
      */
-    public float getY() {
-        return mBoundingBox.getY();
-    }
+    public abstract float getY();
 
     /**
      * Gets the entity's width.
      *
-     * @return {@code mBoundingBox.getWidth()}
+     * @return width of the entity
      */
-    public float getWidth() {
-        return mBoundingBox.getWidth();
-    }
+    public abstract float getWidth();
 
     /**
      * Gets the entity's height.
      *
-     * @return {@code mBoundingBox.getHeight()}
+     * @return height of the entity
      */
-    public float getHeight() {
-        return mBoundingBox.getHeight();
-    }
+    public abstract float getHeight();
+
+    /**
+     * Gets a bounding box for the entity.
+     *
+     * @return bounding box
+     */
+    public abstract Shape2D getBounds();
+
+    /**
+     * Updates the position of the entity based on its velocity.
+     *
+     * @param delta number of seconds the last rendering took
+     */
+    public abstract void updatePosition(float delta);
 
     /**
      * Gets the entity's horizontal velocity.
@@ -99,24 +112,5 @@ public abstract class Entity {
      */
     void setVelocity(Vector2 velocity) {
         mVelocity.set(velocity);
-    }
-
-    /**
-     * Gets the bounding box of the object. Can be used to manipulate the object's position and dimensions.
-     *
-     * @return {@code mBoundingBox}
-     */
-    public Rectangle getBoundingBox() {
-        return mBoundingBox;
-    }
-
-    /**
-     * Updates the position of the ball by the velocities based on the {@code delta}.
-     *
-     * @param delta number of seconds the previous tick lasted
-     */
-    void updatePosition(float delta) {
-        mBoundingBox.x += mVelocity.x;
-        mBoundingBox.y += mVelocity.y;
     }
 }

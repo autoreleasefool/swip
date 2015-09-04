@@ -64,6 +64,9 @@ public class Wall
     /** Color of the wall. */
     private Color mWallColor;
 
+    /** Rectangle which defines the bounds of the wall. */
+    private Rectangle mBoundingBox;
+
     /**
      * Initializes a new wall by converting the provided int to a {@code Side}.
      *
@@ -83,7 +86,6 @@ public class Wall
      * @param screenHeight height of the screen
      */
     public Wall(Side wallSide, int screenWidth, int screenHeight) {
-        super(0, 0, 0, 0);
         if (!sWallsInitialized)
             throw new IllegalStateException("Must call initialize before creating any instances");
 
@@ -94,50 +96,41 @@ public class Wall
     @Override
     public void resize(int screenWidth, int screenHeight) {
         sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
+        if (mBoundingBox == null)
+            mBoundingBox = new Rectangle(0, 0, 0, 0);
 
-        // Resize wall based on screen dimensions
-        Rectangle boundingBox = getBoundingBox();
         switch (mWallSide) {
             case Top:
-                boundingBox.x = 0;
-                boundingBox.y = screenHeight - sDefaultWallSize;
-                boundingBox.width = screenWidth;
-                boundingBox.height = sDefaultWallSize;
+                mBoundingBox.x = 0;
+                mBoundingBox.y = screenHeight - sDefaultWallSize;
+                mBoundingBox.width = screenWidth;
+                mBoundingBox.height = sDefaultWallSize;
                 break;
             case Bottom:
-                boundingBox.x = 0;
-                boundingBox.y = 0;
-                boundingBox.width = screenWidth;
-                boundingBox.height = sDefaultWallSize;
+                mBoundingBox.x = 0;
+                mBoundingBox.y = 0;
+                mBoundingBox.width = screenWidth;
+                mBoundingBox.height = sDefaultWallSize;
                 break;
             case Left:
-                boundingBox.x = 0;
-                boundingBox.y = 0;
-                boundingBox.width = sDefaultWallSize;
-                boundingBox.height = screenHeight;
+                mBoundingBox.x = 0;
+                mBoundingBox.y = 0;
+                mBoundingBox.width = sDefaultWallSize;
+                mBoundingBox.height = screenHeight;
                 break;
             case Right:
-                boundingBox.x = screenWidth - sDefaultWallSize;
-                boundingBox.y = 0;
-                boundingBox.width = sDefaultWallSize;
-                boundingBox.height = screenHeight;
+                mBoundingBox.x = screenWidth - sDefaultWallSize;
+                mBoundingBox.y = 0;
+                mBoundingBox.width = sDefaultWallSize;
+                mBoundingBox.height = screenHeight;
                 break;
             default:
                 throw new IllegalArgumentException("invalid wall side.");
         }
     }
 
-    /**
-     * Draws this wall to the screen in its position as determined by {@code mWallSide}.
-     *
-     * @param shapeRenderer graphics context to draw to
-     */
+    @Override
     public void draw(ShapeRenderer shapeRenderer) {
-        if (!shapeRenderer.isDrawing())
-            throw new IllegalStateException("shape renderer must be drawing");
-        else if (shapeRenderer.getCurrentType() != ShapeRenderer.ShapeType.Filled)
-            throw new IllegalStateException("shape renderer must be using ShapeType.Filled");
-
         if (mWallSide.ordinal() != sLastWallDrawn + 1)
             throw new IllegalStateException("must draw walls in the natural order determined by Wall.Side");
         sLastWallDrawn = mWallSide.ordinal();
@@ -157,6 +150,11 @@ public class Wall
             default:
                 throw new IllegalArgumentException("invalid wall side.");
         }
+    }
+
+    @Override
+    public void tick(float delta) {
+        // does nothing
     }
 
     /**
@@ -286,6 +284,36 @@ public class Wall
         }
 
         return -1;
+    }
+
+    @Override
+    public float getX() {
+        return mBoundingBox.getX();
+    }
+
+    @Override
+    public float getY() {
+        return mBoundingBox.getY();
+    }
+
+    @Override
+    public float getWidth() {
+        return mBoundingBox.getWidth();
+    }
+
+    @Override
+    public float getHeight() {
+        return mBoundingBox.getHeight();
+    }
+
+    @Override
+    public Rectangle getBounds() {
+        return mBoundingBox;
+    }
+
+    @Override
+    public void updatePosition(float delta) {
+        // does nothing
     }
 
     /**

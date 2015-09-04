@@ -1,7 +1,7 @@
 package ca.josephroque.swip.screen;
 
 import ca.josephroque.swip.SwipGame;
-import ca.josephroque.swip.entity.Ball;
+import ca.josephroque.swip.entity.GameBall;
 import ca.josephroque.swip.entity.Wall;
 import ca.josephroque.swip.gesture.GameInputProcessor;
 
@@ -14,7 +14,7 @@ import com.badlogic.gdx.utils.TimeUtils;
 import java.util.Random;
 
 /**
- * Handles the logic and rendering of gameplay.
+ * Handles the logic and rendering of game play.
  */
 @SuppressWarnings("UnusedParameters")
 public final class GameScreen
@@ -54,7 +54,7 @@ public final class GameScreen
     private long mGameStartTime;
 
     /** The ball being used by the game. */
-    private Ball mCurrentBall;
+    private GameBall mCurrentGameBall;
     /** The four walls in the game. */
     private Wall[] mWalls;
     /** Colors of the four walls. */
@@ -109,8 +109,8 @@ public final class GameScreen
             for (Wall wall : mWalls)
                 wall.resize(width, height);
         }
-        if (mCurrentBall != null)
-            mCurrentBall.resize(width, height);
+        if (mCurrentGameBall != null)
+            mCurrentGameBall.resize(width, height);
     }
 
     @Override
@@ -171,7 +171,7 @@ public final class GameScreen
         mGameStartTime = TimeUtils.millis();
 
         // Setting initial properties of entities
-        Ball.initialize(mScreenWidth, mScreenHeight);
+        GameBall.initialize(mScreenWidth, mScreenHeight);
         Wall.initialize(mScreenWidth, mScreenHeight);
 
         // Creating the four walls
@@ -187,7 +187,7 @@ public final class GameScreen
         final int randomWall = mRandomGen.nextInt(Wall.NUMBER_OF_WALLS);
         final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
         passableWalls[randomWall] = true;
-        mCurrentBall = new Ball(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
+        mCurrentGameBall = new GameBall(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
     }
 
     /**
@@ -223,13 +223,13 @@ public final class GameScreen
             if (mCurrentTurnDuration >= mTurnLength) {
                 mCurrentGameState = GameState.GameOver;
             } else {
-                mCurrentBall.drag(mGameInput);
-                mCurrentBall.tryToReleaseBall(mGameInput);
-                mCurrentBall.tick(delta, mWalls);
+                mCurrentGameBall.drag(mGameInput);
+                mCurrentGameBall.tryToReleaseBall(mGameInput);
+                mCurrentGameBall.tick(delta, mWalls);
 
-                if (mCurrentBall.hasPassedThroughWall())
+                if (mCurrentGameBall.hasPassedThroughWall())
                     turnSucceeded();
-                else if (mCurrentBall.hasHitInvalidWall())
+                else if (mCurrentGameBall.hasHitInvalidWall())
                     mCurrentGameState = GameState.GameOver;
             }
         }
@@ -265,7 +265,7 @@ public final class GameScreen
                 passableWalls[randomWall] = mWallColors[randomWall].equals(mWallColors[i]);
         }
 
-        mCurrentBall = new Ball(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
+        mCurrentGameBall = new GameBall(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
 
         if (mTotalTurns % NUMBER_OF_TURNS_BEFORE_DECREMENT == 0)
             mTurnLength = Math.max(MINIMUM_TURN_LENGTH, mTurnLength - TURN_LENGTH_DECREMENT);
@@ -279,7 +279,7 @@ public final class GameScreen
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         mShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        mCurrentBall.draw(mShapeRenderer, mTurnLength, mCurrentTurnDuration);
+        mCurrentGameBall.draw(mShapeRenderer, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
             wall.draw(mShapeRenderer);
 

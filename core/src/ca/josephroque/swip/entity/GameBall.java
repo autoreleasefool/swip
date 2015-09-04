@@ -1,45 +1,24 @@
 package ca.josephroque.swip.entity;
 
 import ca.josephroque.swip.gesture.GameInputProcessor;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.math.Intersector;
 
 /**
  * Balls for swiping into the walls.
  */
-public class Ball
-        extends Entity {
-
-    /** Identifies output from this class in the logcat. */
-    @SuppressWarnings("unused")
-    private static final String TAG = "Ball";
+public class GameBall
+        extends BasicBall {
 
     /** Maximum number of degrees an overlay can cover - 360 degrees (i.e. a circle). */
     private static final float MAX_OVERLAY_DEGREES = 360f;
     /** Degree to start drawing overlay from. */
     private static final float OVERLAY_STARTING_DEGREE = 90f;
 
-    /** Number of milliseconds the ball will take to scale up. */
-    public static final float BALL_SCALE_TIME = 175f;
-    /** Used to determine size of the ball as a percentage of the screen size. */
-    private static final float BALL_SIZE_MULTIPLIER = 0.075f;
-
     /** Color of the overlay to represent time remaining in a turn. */
     private static final Color BALL_TIMER_COLOR = new Color(0, 0, 0, 0.4f);
 
-    /** Default radius of the ball. */
-    private static float sDefaultBallRadius;
-    /** Indicates if the static ball properties have been initialized. */
-    private static boolean sBallsInitialized = false;
-
-    /** Scale for the ball radius, where {@code 1 = sMaximumBallRadius}. */
-    private float mScale;
-    /** Time in milliseconds that this object was created at. */
-    private long mTimeCreated;
-    /** Color of the ball. */
-    private final Color mBallColor;
     /** Indicates the walls which the ball can pass through. */
     private final boolean[] mPassableWalls;
     /** Indicates if the ball has touched a wall it cannot pass through. */
@@ -60,13 +39,8 @@ public class Ball
      * @param x starting horizontal position of the ball
      * @param y starting vertical position of the ball
      */
-    public Ball(Color ballColor, boolean[] passableWalls, float x, float y) {
-        super(x, y, 0, 0);
-        if (!sBallsInitialized)
-            throw new IllegalStateException("Must call initialize before creating any instances");
-
-        mTimeCreated = TimeUtils.millis();
-        mBallColor = ballColor;
+    public GameBall(Color ballColor, boolean[] passableWalls, float x, float y) {
+        super(ballColor, x, y);
         mPassableWalls = passableWalls;
     }
 
@@ -77,30 +51,11 @@ public class Ball
      * @param walls walls on the screen
      */
     public void tick(float delta, Wall[] walls) {
+        super.tick(delta);
         if (!mIsDragging)
             updatePosition(delta);
 
         checkWalls(walls);
-        scale();
-    }
-
-    @Override
-    public void resize(int screenWidth, int screenHeight) {
-        sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
-        getBoundingBox().setSize(sDefaultBallRadius * mScale * 2, sDefaultBallRadius * mScale * 2);
-    }
-
-    /**
-     * Sets the size of the ball depending on how long it has been on screen.
-     */
-    private void scale() {
-        final long timeSinceCreated = TimeUtils.timeSinceMillis(mTimeCreated);
-        if (timeSinceCreated < BALL_SCALE_TIME)
-            mScale = Math.min(1f, Math.max(0f, timeSinceCreated / BALL_SCALE_TIME));
-        else
-            mScale = 1f;
-
-        getBoundingBox().setSize(sDefaultBallRadius * mScale * 2, sDefaultBallRadius * mScale * 2);
     }
 
     /**
@@ -110,8 +65,8 @@ public class Ball
      */
     private void checkWalls(Wall[] walls) {
         for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
-            boolean hitWall;
-            switch (walls[i].getSide()) {
+            boolean hitWall = Intersector.overlaps(getBounds(), walls[i].getBounds());
+            /*switch (walls[i].getSide()) {
                 case Top:
                     hitWall = getY() + getHeight() > walls[i].getY();
                     break;
@@ -126,7 +81,7 @@ public class Ball
                     break;
                 default:
                     throw new IllegalArgumentException("invalid wall side.");
-            }
+            }*/
 
             if (hitWall) {
                 if (mPassableWalls[i]) {
@@ -177,11 +132,10 @@ public class Ball
             return;
 
         if (!mIsDragging) {
-            if (getBoundingBox().contains(gameInput.getLastFingerX(), gameInput.getLastFingerY()))
+            if (getBounds().contains(gameInput.getLastFingerX(), gameInput.getLastFingerY()))
                 mIsDragging = true;
         } else {
-            getBoundingBox().setPosition(gameInput.getLastFingerX() - getWidth() / 2,
-                    gameInput.getLastFingerY() - getHeight() / 2);
+            getBounds().setPosition(gameInput.getLastFingerX(), gameInput.getLastFingerY());
         }
     }
 
@@ -194,23 +148,8 @@ public class Ball
      * @param currentTurnLength duration of the current turn
      */
     public void draw(ShapeRenderer shapeRenderer, int maxTurnLength, int currentTurnLength) {
-        if (!shapeRenderer.isDrawing())
-            throw new IllegalStateException("shape renderer must be drawing");
-        else if (shapeRenderer.getCurrentType() != ShapeRenderer.ShapeType.Filled)
-            throw new IllegalStateException("shape renderer must be using ShapeType.Filled");
-
-        drawBall(shapeRenderer);
+        super.draw(shapeRenderer);
         drawBallOverlay(shapeRenderer, maxTurnLength, currentTurnLength);
-    }
-
-    /**
-     * Draws the ball's circle to the screen.
-     *
-     * @param shapeRenderer graphics context to draw to
-     */
-    private void drawBall(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(mBallColor);
-        shapeRenderer.circle(getX() + getWidth() / 2, getY() + getHeight() / 2, getWidth() / 2);
     }
 
     /**
@@ -277,21 +216,9 @@ public class Ball
     /**
      * Returns true if the ball has touched a wall which it cannot pass through.
      *
-     * @return {@code true} if an invalud wall has been touched
+     * @return {@code true} if an invalid wall has been touched
      */
     public boolean hasHitInvalidWall() {
         return mHitInvalidWall;
-    }
-
-    /**
-     * Initializes static values common for all balls. Must be called before creating any instances of this object, and
-     * should be called any time the screen is resized.
-     *
-     * @param screenWidth width of the screen
-     * @param screenHeight height of the screen
-     */
-    public static void initialize(int screenWidth, int screenHeight) {
-        sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
-        sBallsInitialized = true;
     }
 }
