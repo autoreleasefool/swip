@@ -123,7 +123,7 @@ public class Wall
                 boundingBox.height = screenHeight;
                 break;
             default:
-                // does nothing
+                throw new IllegalArgumentException("invalid wall side.");
         }
     }
 
@@ -155,7 +155,7 @@ public class Wall
                 drawEdgeSlants(shapeRenderer, mWallSide == Side.Left);
                 break;
             default:
-                // does nothing
+                throw new IllegalArgumentException("invalid wall side.");
         }
     }
 
@@ -214,6 +214,15 @@ public class Wall
      */
     public void updateWallColor(Color wallColor) {
         mWallColor = wallColor;
+    }
+
+    /**
+     * Returns the side of the screen this wall represents.
+     *
+     * @return {@code mWallSide}
+     */
+    public Side getSide() {
+        return mWallSide;
     }
 
     /**
@@ -282,7 +291,7 @@ public class Wall
     /**
      * Represents the four edges of the screen.
      */
-    private enum Side {
+    public enum Side {
         /** The top wall. */
         Top,
         /** The bottom wall. */

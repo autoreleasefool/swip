@@ -135,7 +135,7 @@ public final class GameScreen
                 tickGameOver(delta);
                 break;
             default:
-                // does nothing
+                throw new IllegalArgumentException("invalid game state.");
         }
     }
 
@@ -155,7 +155,7 @@ public final class GameScreen
                 drawGameOver();
                 break;
             default:
-                // does nothing
+                throw new IllegalArgumentException("invalid game state.");
         }
     }
 
@@ -226,6 +226,11 @@ public final class GameScreen
                 mCurrentBall.drag(mGameInput);
                 mCurrentBall.tryToReleaseBall(mGameInput);
                 mCurrentBall.tick(delta, mWalls);
+
+                if (mCurrentBall.hasPassedThroughWall())
+                    turnSucceeded();
+                else if (mCurrentBall.hasHitInvalidWall())
+                    mCurrentGameState = GameState.GameOver;
             }
         }
     }

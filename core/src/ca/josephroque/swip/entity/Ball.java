@@ -4,7 +4,6 @@ import ca.josephroque.swip.gesture.GameInputProcessor;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.TimeUtils;
 
 /**
@@ -43,6 +42,12 @@ public class Ball
     private final Color mBallColor;
     /** Indicates the walls which the ball can pass through. */
     private final boolean[] mPassableWalls;
+    /** Indicates if the ball has touched a wall it cannot pass through. */
+    private boolean mHitInvalidWall;
+    /** Indicates if the ball has passed at least halfway through a valid wall. */
+    private boolean[] mHalfwayThroughWall = new boolean[Wall.NUMBER_OF_WALLS];
+    /** Indicates if the ball has completely passed through a valid wall. */
+    private boolean[] mPassedThroughWall = new boolean[Wall.NUMBER_OF_WALLS];
 
     /** Indicates if the ball is currently being dragged around the screen by the user. */
     private boolean mIsDragging;
@@ -75,6 +80,20 @@ public class Ball
         if (!mIsDragging)
             updatePosition(delta);
 
+        checkWalls(walls);
+        scale();
+    }
+
+    @Override
+    public void resize(int screenWidth, int screenHeight) {
+        sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
+        getBoundingBox().setSize(sDefaultBallRadius * mScale * 2, sDefaultBallRadius * mScale * 2);
+    }
+
+    /**
+     * Sets the size of the ball depending on how long it has been on screen.
+     */
+    private void scale() {
         final long timeSinceCreated = TimeUtils.timeSinceMillis(mTimeCreated);
         if (timeSinceCreated < BALL_SCALE_TIME)
             mScale = Math.min(1f, Math.max(0f, timeSinceCreated / BALL_SCALE_TIME));
@@ -84,10 +103,68 @@ public class Ball
         getBoundingBox().setSize(sDefaultBallRadius * mScale * 2, sDefaultBallRadius * mScale * 2);
     }
 
-    @Override
-    public void resize(int screenWidth, int screenHeight) {
-        sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
-        getBoundingBox().setSize(sDefaultBallRadius * mScale * 2, sDefaultBallRadius * mScale * 2);
+    /**
+     * Checks to see if the ball is passing through a wall or colliding with a solid wall.
+     *
+     * @param walls walls on the screen
+     */
+    private void checkWalls(Wall[] walls) {
+        for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
+            boolean hitWall;
+            switch (walls[i].getSide()) {
+                case Top:
+                    hitWall = getY() + getHeight() > walls[i].getY();
+                    break;
+                case Bottom:
+                    hitWall = getY() < walls[i].getY() + walls[i].getHeight();
+                    break;
+                case Left:
+                    hitWall = getX() < walls[i].getX() + walls[i].getWidth();
+                    break;
+                case Right:
+                    hitWall = getX() + getWidth() > walls[i].getX();
+                    break;
+                default:
+                    throw new IllegalArgumentException("invalid wall side.");
+            }
+
+            if (hitWall) {
+                if (mPassableWalls[i]) {
+                    checkIfPastWall(walls[i], i);
+                } else if (!hasPassedHalfwayThroughWall() && !hasPassedThroughWall()) {
+                    mHitInvalidWall = true;
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks to see if the ball has successfully passed completely through a wall.
+     *
+     * @param wall wall to check
+     * @param index index of wall to check against member variables
+     */
+    private void checkIfPastWall(Wall wall, int index) {
+        switch (wall.getSide()) {
+            case Top:
+                mPassedThroughWall[index] = getY() > wall.getY();
+                mHalfwayThroughWall[index] = getY() + getHeight() / 2 > wall.getY();
+                break;
+            case Bottom:
+                mPassedThroughWall[index] = getY() + getHeight() < wall.getY() + wall.getHeight();
+                mHalfwayThroughWall[index] = getY() + getHeight() / 2 < wall.getY() + wall.getHeight();
+                break;
+            case Left:
+                mPassedThroughWall[index] = getX() + getWidth() < wall.getX() + wall.getWidth();
+                mHalfwayThroughWall[index] = getX() + getWidth() / 2 < wall.getX() + wall.getWidth();
+                break;
+            case Right:
+                mPassedThroughWall[index] = getX() > wall.getX();
+                mHalfwayThroughWall[index] = getX() + getWidth() / 2 > wall.getX();
+                break;
+            default:
+                throw new IllegalArgumentException("invalid wall side.");
+        }
     }
 
     /**
@@ -159,25 +236,6 @@ public class Ball
     }
 
     /**
-     * Checks if the ball can pass through the provided wall.
-     *
-     * @param wall wall to check
-     * @return {@code true} if the wall is passable, false otherwise
-     */
-    public boolean canPassThroughWall(int wall) {
-        return mPassableWalls[wall];
-    }
-
-    /**
-     * Returns true if the user is currently dragging the ball.
-     *
-     * @return {@code mIsDragging}
-     */
-    public boolean isDragging() {
-        return mIsDragging;
-    }
-
-    /**
      * Cancels the drag on the ball and sets its velocity to move at the speed that it was being dragged.
      *
      * @param gameInput player's input events
@@ -190,6 +248,39 @@ public class Ball
             mIsDragging = false;
             setVelocity(gameInput.calculateFingerDragVelocity());
         }
+    }
+
+    /**
+     * Returns true if the ball has successfully passed completely through a wall.
+     *
+     * @return {@code true} if the ball has currently passed through any wall
+     */
+    public boolean hasPassedThroughWall() {
+        for (boolean throughWall : mPassedThroughWall)
+            if (throughWall)
+                return true;
+        return false;
+    }
+
+    /**
+     * Checks if the ball has passed at least halfway through any wall.
+     *
+     * @return {@code true} if the ball is currently at least halfway through a wall
+     */
+    public boolean hasPassedHalfwayThroughWall() {
+        for (boolean halfway : mHalfwayThroughWall)
+            if (halfway)
+                return true;
+        return false;
+    }
+
+    /**
+     * Returns true if the ball has touched a wall which it cannot pass through.
+     *
+     * @return {@code true} if an invalud wall has been touched
+     */
+    public boolean hasHitInvalidWall() {
+        return mHitInvalidWall;
     }
 
     /**
