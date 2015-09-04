@@ -20,6 +20,12 @@ public class GameInputProcessor
     /** The maximum number of locations to store of the user's finger history on the screen. */
     private static final int MAXIMUM_FINGER_HISTORY = 5;
 
+    /**
+     * The finger velocity is calculated in milliseconds, but game object velocities use seconds, so the finger velocity
+     * must be scaled up.
+     */
+    private static final int FINGER_VELOCITY_SCALE = 1000;
+
     /** Width of the screen. */
     private int mScreenWidth;
     /** Height of the screen. */
@@ -73,21 +79,11 @@ public class GameInputProcessor
         if (mFingerHistory.size() == 0) {
             mFingerDragVelocity.set(0, 0);
         } else {
-            /**int totalXDistance = 0;
-            int totalYDistance = 0;
-            Triplet<Integer, Integer, Long> lastFingerLocation = null;
-            for (Triplet<Integer, Integer, Long> fingerLocation : mFingerHistory) {
-                if (lastFingerLocation != null) {
-                    totalXDistance += fingerLocation.getFirst() - lastFingerLocation.getFirst();
-                    totalYDistance += fingerLocation.getSecond() - lastFingerLocation.getSecond();
-                }
-                lastFingerLocation = fingerLocation;
-            }*/
-
-            int totalXDistance = mFingerHistory.getLast().getFirst() - mFingerHistory.getLast().getFirst();
-            int totalYDistance = mFingerHistory.getLast().getSecond() - mFingerHistory.getLast().getSecond();
+            int totalXDistance = mFingerHistory.getLast().getFirst() - mFingerHistory.getFirst().getFirst();
+            int totalYDistance = mFingerHistory.getLast().getSecond() - mFingerHistory.getFirst().getSecond();
             float elapsedTime = mFingerHistory.getLast().getThird() - mFingerHistory.getFirst().getThird();
-            mFingerDragVelocity.set(totalXDistance / elapsedTime, totalYDistance / elapsedTime);
+            mFingerDragVelocity.set(totalXDistance / elapsedTime * FINGER_VELOCITY_SCALE,
+                    -totalYDistance / elapsedTime * FINGER_VELOCITY_SCALE);
         }
 
         return mFingerDragVelocity;
@@ -139,7 +135,7 @@ public class GameInputProcessor
         mLastFingerX = screenX;
         mLastFingerY = screenY;
         while (mFingerHistory.size() >= MAXIMUM_FINGER_HISTORY)
-            mFingerHistory.remove(0);
+            mFingerHistory.removeFirst();
         mFingerHistory.add(Triplet.create(screenX, screenY, TimeUtils.millis()));
         return true;
     }
