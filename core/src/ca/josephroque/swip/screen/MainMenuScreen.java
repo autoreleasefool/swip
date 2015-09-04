@@ -34,22 +34,27 @@ public final class MainMenuScreen
     }
 
     @Override
-    public void render(float delta) {
-        tick(delta);
-
-        if (!wasDisposed())
-            draw();
+    public void hide() {
+        dispose();
     }
 
     @Override
     public void dispose() {
-        disposeEventually();
+        super.dispose();
     }
 
     @Override
     public void resize(int width, int height) {
         mScreenWidth = width;
         mScreenHeight = height;
+    }
+
+    @Override
+    public void render(float delta) {
+        tick(delta);
+
+        if (!wasDisposed())
+            draw();
     }
 
     /**

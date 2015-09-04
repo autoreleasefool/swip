@@ -3,13 +3,12 @@ package ca.josephroque.swip.screen;
 import ca.josephroque.swip.SwipGame;
 import ca.josephroque.swip.entity.Ball;
 import ca.josephroque.swip.entity.Wall;
-import ca.josephroque.swip.gesture.GameGestureListener;
+import ca.josephroque.swip.gesture.GameInputProcessor;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.utils.TimeUtils;
 
 import java.util.Random;
@@ -26,7 +25,7 @@ public final class GameScreen
     private static final String TAG = "GameScreen";
 
     /** Number of milliseconds that a turn at the start of a game lasts. */
-    private static final int STARTING_TURN_LENGTH = 1200;
+    private static final int STARTING_TURN_LENGTH = 10000; // TODO: change to actual start value, 1200
     /** Number of milliseconds to subtract from the length of a turn at a time. */
     private static final int TURN_LENGTH_DECREMENT = 50;
     /** Number of turns that must pass before the turn length is decremented. */
@@ -39,7 +38,7 @@ public final class GameScreen
     /** Allows rendering of basic shapes on the screen. */
     private ShapeRenderer mShapeRenderer;
     /** Handles gesture input events. */
-    private GameGestureListener mGestureListener;
+    private GameInputProcessor mGameInput;
 
     /** Width of the screen. */
     private int mScreenWidth;
@@ -69,6 +68,58 @@ public final class GameScreen
     private int mCurrentTurnDuration;
     /** Total number of turns that have passed since the game began (i.e. the player's score). */
     private int mTotalTurns;
+
+    @Override
+    public void show() {
+        mScreenWidth = Gdx.graphics.getWidth();
+        mScreenHeight = Gdx.graphics.getHeight();
+
+        // Preparing UI objects
+        mShapeRenderer = new ShapeRenderer();
+
+        // Creating gesture handler
+        mGameInput = new GameInputProcessor();
+        Gdx.input.setInputProcessor(mGameInput);
+
+        // Starting a new game
+        startNewGame();
+    }
+
+    @Override
+    public void hide() {
+        dispose();
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+
+        // Freeing graphics objects
+        mShapeRenderer.dispose();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        mScreenWidth = width;
+        mScreenHeight = height;
+        mGameInput.resize(width, height);
+
+        // Resizing entities on screen
+        if (mWalls != null) {
+            for (Wall wall : mWalls)
+                wall.resize(width, height);
+        }
+        if (mCurrentBall != null)
+            mCurrentBall.resize(width, height);
+    }
+
+    @Override
+    public void render(float delta) {
+        tick(delta);
+
+        if (!wasDisposed())
+            draw();
+    }
 
     @Override
     public void tick(float delta) {
@@ -106,49 +157,6 @@ public final class GameScreen
             default:
                 // does nothing
         }
-    }
-
-    @Override
-    public void show() {
-        mScreenWidth = Gdx.graphics.getWidth();
-        mScreenHeight = Gdx.graphics.getHeight();
-
-        // Preparing UI objects
-        mShapeRenderer = new ShapeRenderer();
-
-        // Creating gesture handler
-        mGestureListener = new GameGestureListener();
-        GestureDetector gestureDetector = new GestureDetector(mGestureListener);
-        Gdx.input.setInputProcessor(gestureDetector);
-
-        // Starting a new game
-        startNewGame();
-    }
-
-    @Override
-    public void render(float delta) {
-        tick(delta);
-
-        if (!wasDisposed())
-            draw();
-    }
-
-    @Override
-    public void hide() {
-        disposeEventually();
-
-        // Disposing objects
-        mShapeRenderer.dispose();
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        mScreenWidth = width;
-        mScreenHeight = height;
-        mGestureListener.resize(width, height);
-
-        Wall.initialize(mScreenWidth, mScreenHeight);
-        Ball.initialize(mScreenWidth, mScreenHeight);
     }
 
     /**
@@ -190,7 +198,6 @@ public final class GameScreen
     private void tickStartingGame(float delta) {
         // Counts down timer to start of game
         if (TimeUtils.timeSinceMillis(mGameStartTime) >= TIME_UNTIL_GAME_STARTS) {
-            mGestureListener.consumeFling();
             mCurrentGameState = GameState.Active;
         }
     }
@@ -216,8 +223,9 @@ public final class GameScreen
             if (mCurrentTurnDuration >= mTurnLength) {
                 mCurrentGameState = GameState.GameOver;
             } else {
-                GameGestureListener.FlingDirection flingDirection = mGestureListener.consumeFling();
-                mCurrentBall.tick(delta);
+                mCurrentBall.drag(mGameInput);
+                mCurrentBall.tryToReleaseBall(mGameInput);
+                mCurrentBall.tick(delta, mWalls);
             }
         }
     }

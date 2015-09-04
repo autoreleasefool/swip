@@ -1,8 +1,10 @@
 package ca.josephroque.swip.entity;
 
+import ca.josephroque.swip.gesture.GameInputProcessor;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.TimeUtils;
 
 /**
@@ -42,6 +44,9 @@ public class Ball
     /** Indicates the walls which the ball can pass through. */
     private final boolean[] mPassableWalls;
 
+    /** Indicates if the ball is currently being dragged around the screen by the user. */
+    private boolean mIsDragging;
+
     /**
      * Prepares a new ball object.
      *
@@ -60,26 +65,47 @@ public class Ball
         mPassableWalls = passableWalls;
     }
 
-    @Override
-    public void tick(float delta) {
-        updatePosition(delta);
+    /**
+     * Updates the ball's position and evaluates relevant logic.
+     *
+     * @param delta number of seconds the last tick took
+     * @param walls walls on the screen
+     */
+    public void tick(float delta, Wall[] walls) {
+        if (!mIsDragging)
+            updatePosition(delta);
 
-        float oldScale = mScale;
         final long timeSinceCreated = TimeUtils.timeSinceMillis(mTimeCreated);
         if (timeSinceCreated < BALL_SCALE_TIME)
             mScale = Math.min(1f, Math.max(0f, timeSinceCreated / BALL_SCALE_TIME));
         else
             mScale = 1f;
 
-        float sizeDifference = (sDefaultBallRadius * mScale) - (sDefaultBallRadius * oldScale);
-        getBoundingBox().setSize(sDefaultBallRadius * mScale, sDefaultBallRadius * mScale);
-        getBoundingBox().setPosition(getX() - sizeDifference / 2, getY() - sizeDifference / 2);
+        getBoundingBox().setSize(sDefaultBallRadius * mScale * 2, sDefaultBallRadius * mScale * 2);
     }
 
     @Override
     public void resize(int screenWidth, int screenHeight) {
         sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
-        getBoundingBox().setSize(sDefaultBallRadius * mScale, sDefaultBallRadius * mScale);
+        getBoundingBox().setSize(sDefaultBallRadius * mScale * 2, sDefaultBallRadius * mScale * 2);
+    }
+
+    /**
+     * Attempts to start a drag event if the player has touched the ball.
+     *
+     * @param gameInput player's input events
+     */
+    public void drag(GameInputProcessor gameInput) {
+        if (!gameInput.isFingerDown())
+            return;
+
+        if (!mIsDragging) {
+            if (getBoundingBox().contains(gameInput.getLastFingerX(), gameInput.getLastFingerY()))
+                mIsDragging = true;
+        } else {
+            getBoundingBox().setPosition(gameInput.getLastFingerX() - getWidth() / 2,
+                    gameInput.getLastFingerY() - getHeight() / 2);
+        }
     }
 
     /**
@@ -107,7 +133,7 @@ public class Ball
      */
     private void drawBall(ShapeRenderer shapeRenderer) {
         shapeRenderer.setColor(mBallColor);
-        shapeRenderer.circle(getX(), getY(), getWidth());
+        shapeRenderer.circle(getX() + getWidth() / 2, getY() + getHeight() / 2, getWidth() / 2);
     }
 
     /**
@@ -124,7 +150,12 @@ public class Ball
         final int segments = 100;
         final float degrees = -(currentTurnLength / (float) maxTurnLength) * MAX_OVERLAY_DEGREES;
         shapeRenderer.setColor(BALL_TIMER_COLOR);
-        shapeRenderer.arc(getX(), getY(), getWidth(), OVERLAY_STARTING_DEGREE, degrees, segments);
+        shapeRenderer.arc(getX() + getWidth() / 2,
+                getY() + getHeight() / 2,
+                getWidth() / 2,
+                OVERLAY_STARTING_DEGREE,
+                degrees,
+                segments);
     }
 
     /**
@@ -135,6 +166,30 @@ public class Ball
      */
     public boolean canPassThroughWall(int wall) {
         return mPassableWalls[wall];
+    }
+
+    /**
+     * Returns true if the user is currently dragging the ball.
+     *
+     * @return {@code mIsDragging}
+     */
+    public boolean isDragging() {
+        return mIsDragging;
+    }
+
+    /**
+     * Cancels the drag on the ball and sets its velocity to move at the speed that it was being dragged.
+     *
+     * @param gameInput player's input events
+     */
+    public void tryToReleaseBall(GameInputProcessor gameInput) {
+        if (!mIsDragging)
+            return;
+
+        if (!gameInput.isFingerDown()) {
+            mIsDragging = false;
+            setVelocity(gameInput.calculateFingerDragVelocity());
+        }
     }
 
     /**

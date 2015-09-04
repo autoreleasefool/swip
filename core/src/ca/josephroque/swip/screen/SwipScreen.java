@@ -51,7 +51,7 @@ public abstract class SwipScreen
 
     @Override
     public void dispose() {
-        // does nothing
+        mWasDisposed = true;
     }
 
     /**
@@ -67,19 +67,12 @@ public abstract class SwipScreen
     abstract void draw();
 
     /**
-     * Gets whether this screen is going to be disposed.
+     * Returns true if the screen was disposed.
      *
-     * @return the value of {@code mWasDisposed}
+     * @return {@code mWasDisposed}
      */
-    boolean wasDisposed() {
+    public boolean wasDisposed() {
         return mWasDisposed;
-    }
-
-    /**
-     * Marks the screen to be disposed.
-     */
-    void disposeEventually() {
-        mWasDisposed = true;
     }
 
     /**

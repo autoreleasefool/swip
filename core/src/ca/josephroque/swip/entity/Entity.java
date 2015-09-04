@@ -31,14 +31,7 @@ public abstract class Entity {
     }
 
     /**
-     * Updates the logic of the entity.
-     *
-     * @param delta number of seconds the previous time lasted
-     */
-    public abstract void tick(float delta);
-
-    /**
-     * Resizes the object relative to the screen dimensions.
+     * Adjust the size of the object relative to the screen dimensions.
      *
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
@@ -86,7 +79,7 @@ public abstract class Entity {
      *
      * @return x velocity
      */
-    public float getHorizVelocity() {
+    public float getXVelocity() {
         return mVelocity.x;
     }
 
@@ -95,8 +88,17 @@ public abstract class Entity {
      *
      * @return y velocity
      */
-    public float getVertVelocity() {
+    public float getYVelocity() {
         return mVelocity.y;
+    }
+
+    /**
+     * Updates the entity's moving velocity.
+     *
+     * @param velocity new velocity
+     */
+    void setVelocity(Vector2 velocity) {
+        mVelocity.set(velocity);
     }
 
     /**

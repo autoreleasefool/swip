@@ -92,11 +92,6 @@ public class Wall
     }
 
     @Override
-    public void tick(float delta) {
-        // does nothing
-    }
-
-    @Override
     public void resize(int screenWidth, int screenHeight) {
         sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
 
