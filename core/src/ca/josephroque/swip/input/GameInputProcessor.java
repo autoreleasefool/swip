@@ -13,6 +13,10 @@ import java.util.LinkedList;
 public class GameInputProcessor
         implements InputProcessor {
 
+    /** Identifies output from this class in the logcat. */
+    @SuppressWarnings("unused")
+    private static final String TAG = "GameInput";
+
     /** The maximum number of locations to store of the user's finger history on the screen. */
     private static final int MAXIMUM_FINGER_HISTORY = 5;
 

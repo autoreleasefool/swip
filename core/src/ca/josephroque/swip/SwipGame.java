@@ -12,6 +12,10 @@ import com.badlogic.gdx.Gdx;
 public class SwipGame
         extends Game {
 
+    /** Identifies output from this class in the logcat. */
+    @SuppressWarnings("unused")
+    private static final String TAG = "SwipGame";
+
     @Override
     public void create() {
         Gdx.app.setLogLevel(Application.LOG_DEBUG);

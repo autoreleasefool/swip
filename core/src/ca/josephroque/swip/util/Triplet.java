@@ -9,6 +9,10 @@ package ca.josephroque.swip.util;
  */
 public class Triplet<A, B, C> {
 
+    /** Identifies output from this class in the logcat. */
+    @SuppressWarnings("unused")
+    private static final String TAG = "Triplet";
+
     /** First object in the triplet. */
     private final A mFirst;
     /** Second object in the triplet. */
