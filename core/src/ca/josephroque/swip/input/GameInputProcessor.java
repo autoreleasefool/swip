@@ -1,4 +1,4 @@
-package ca.josephroque.swip.gesture;
+package ca.josephroque.swip.input;
 
 import ca.josephroque.swip.util.Triplet;
 import com.badlogic.gdx.InputProcessor;

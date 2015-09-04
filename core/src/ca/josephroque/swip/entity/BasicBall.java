@@ -81,6 +81,8 @@ public abstract class BasicBall
             mScale = Math.min(1f, Math.max(0f, timeSinceCreated / BALL_SCALE_TIME));
         else
             mScale = 1f;
+
+        mBoundingCircle.setRadius(sDefaultBallRadius * mScale);
     }
 
     /**
@@ -111,12 +113,12 @@ public abstract class BasicBall
 
     @Override
     public float getWidth() {
-        return mBoundingCircle.radius;
+        return getRadius() * 2;
     }
 
     @Override
     public float getHeight() {
-        return mBoundingCircle.radius;
+        return getRadius() * 2;
     }
 
     @Override

@@ -1,15 +1,18 @@
 package ca.josephroque.swip.entity;
 
-import ca.josephroque.swip.gesture.GameInputProcessor;
+import ca.josephroque.swip.input.GameInputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Intersector;
 
 /**
  * Balls for swiping into the walls.
  */
 public class GameBall
         extends BasicBall {
+
+    /** Identifies output from this class in the logcat. */
+    @SuppressWarnings("unused")
+    private static final String TAG = "GameBall";
 
     /** Maximum number of degrees an overlay can cover - 360 degrees (i.e. a circle). */
     private static final float MAX_OVERLAY_DEGREES = 360f;
@@ -65,23 +68,23 @@ public class GameBall
      */
     private void checkWalls(Wall[] walls) {
         for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
-            boolean hitWall = Intersector.overlaps(getBounds(), walls[i].getBounds());
-            /*switch (walls[i].getSide()) {
+            boolean hitWall;
+            switch (walls[i].getSide()) {
                 case Top:
-                    hitWall = getY() + getHeight() > walls[i].getY();
+                    hitWall = getY() + getRadius() > walls[i].getY();
                     break;
                 case Bottom:
-                    hitWall = getY() < walls[i].getY() + walls[i].getHeight();
+                    hitWall = getY() - getRadius() < walls[i].getY() + walls[i].getHeight();
                     break;
                 case Left:
-                    hitWall = getX() < walls[i].getX() + walls[i].getWidth();
+                    hitWall = getX() - getRadius() < walls[i].getX() + walls[i].getWidth();
                     break;
                 case Right:
-                    hitWall = getX() + getWidth() > walls[i].getX();
+                    hitWall = getX() + getRadius() > walls[i].getX();
                     break;
                 default:
                     throw new IllegalArgumentException("invalid wall side.");
-            }*/
+            }
 
             if (hitWall) {
                 if (mPassableWalls[i]) {
@@ -102,20 +105,20 @@ public class GameBall
     private void checkIfPastWall(Wall wall, int index) {
         switch (wall.getSide()) {
             case Top:
-                mPassedThroughWall[index] = getY() > wall.getY();
-                mHalfwayThroughWall[index] = getY() + getHeight() / 2 > wall.getY();
+                mPassedThroughWall[index] = getY() - getRadius() > wall.getY();
+                mHalfwayThroughWall[index] = getY() > wall.getY();
                 break;
             case Bottom:
-                mPassedThroughWall[index] = getY() + getHeight() < wall.getY() + wall.getHeight();
-                mHalfwayThroughWall[index] = getY() + getHeight() / 2 < wall.getY() + wall.getHeight();
+                mPassedThroughWall[index] = getY() + getRadius() < wall.getY() + wall.getHeight();
+                mHalfwayThroughWall[index] = getY() < wall.getY() + wall.getHeight();
                 break;
             case Left:
-                mPassedThroughWall[index] = getX() + getWidth() < wall.getX() + wall.getWidth();
-                mHalfwayThroughWall[index] = getX() + getWidth() / 2 < wall.getX() + wall.getWidth();
+                mPassedThroughWall[index] = getX() + getRadius() < wall.getX() + wall.getWidth();
+                mHalfwayThroughWall[index] = getX() < wall.getX() + wall.getWidth();
                 break;
             case Right:
-                mPassedThroughWall[index] = getX() > wall.getX();
-                mHalfwayThroughWall[index] = getX() + getWidth() / 2 > wall.getX();
+                mPassedThroughWall[index] = getX() - getRadius() > wall.getX();
+                mHalfwayThroughWall[index] = getX() > wall.getX();
                 break;
             default:
                 throw new IllegalArgumentException("invalid wall side.");
@@ -166,12 +169,7 @@ public class GameBall
         final int segments = 100;
         final float degrees = -(currentTurnLength / (float) maxTurnLength) * MAX_OVERLAY_DEGREES;
         shapeRenderer.setColor(BALL_TIMER_COLOR);
-        shapeRenderer.arc(getX() + getWidth() / 2,
-                getY() + getHeight() / 2,
-                getWidth() / 2,
-                OVERLAY_STARTING_DEGREE,
-                degrees,
-                segments);
+        shapeRenderer.arc(getX(), getY(), getRadius(), OVERLAY_STARTING_DEGREE, degrees, segments);
     }
 
     /**

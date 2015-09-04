@@ -243,6 +243,9 @@ public class Wall
      * Adds a new color from {@code ALL_POSSIBLE_WALL_COLORS} to the current active wall colors.
      */
     public static void addWallColorToActive() {
+        if (!sWallsInitialized)
+            throw new IllegalStateException("Must initialize walls.");
+
         if (sListActiveColors.size() < ALL_POSSIBLE_WALL_COLORS.length)
             sListActiveColors.add(ALL_POSSIBLE_WALL_COLORS[sListActiveColors.size()]);
     }
@@ -259,6 +262,8 @@ public class Wall
      * there are no two walls the same, this method returns -1
      */
     public static int getRandomWallColors(Random random, Color[] wallColors, boolean allowSame) {
+        if (!sWallsInitialized)
+            throw new IllegalStateException("Must initialize walls.");
         if (wallColors.length != NUMBER_OF_WALLS)
             throw new IllegalArgumentException("color array must have length 4");
 
