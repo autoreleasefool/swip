@@ -130,7 +130,7 @@ public class GameManager {
         mCurrentTurnDuration = (int) TimeUtils.timeSinceMillis(mStartOfTurn);
 
         if (mCurrentTurnDuration >= mTurnLength) {
-            mGameOver = true;
+            endGame();
         } else {
             mCurrentGameBall.drag(gameInput);
             mCurrentGameBall.tryToReleaseBall(gameInput);
@@ -139,7 +139,7 @@ public class GameManager {
             if (mCurrentGameBall.hasPassedThroughWall())
                 turnSucceeded();
             else if (mCurrentGameBall.hasHitInvalidWall())
-                mGameOver = true;
+                endGame();
         }
     }
 
@@ -177,6 +177,8 @@ public class GameManager {
         mGameOver = false;
         mGameReadyToStart = false;
         mGameStartTime = TimeUtils.millis();
+
+        mCurrentGameBall = null;
     }
 
     /**
@@ -204,19 +206,26 @@ public class GameManager {
     }
 
     /**
+     * Ends the current game - it has been lost.
+     */
+    public void endGame() {
+        mGameOver = true;
+    }
+
+    /**
      * Increases the player's score and starts a new turn.
      */
     private void turnSucceeded() {
         mTotalTurns++;
         mStartOfTurn = TimeUtils.millis();
 
-        if (mTotalTurns % Wall.NUMBER_OF_TURNS_BEFORE_NEW_COLOR == 0)
+        if (mTotalTurns % Wall.TURNS_BEFORE_NEW_COLOR == 0)
             Wall.addWallColorToActive();
 
         // Generates new colors for the wall
         int wallPairFirstIndex = Wall.getRandomWallColors(mRandomNumberGenerator,
                 mWallColors,
-                mTotalTurns > Wall.NUMBER_OF_TURNS_BEFORE_SAME_WALL_COLORS);
+                mTotalTurns > Wall.TURNS_BEFORE_SAME_WALL_COLORS);
         for (int i = 0; i < mWalls.length; i++)
             mWalls[i].updateWallColor(mWallColors[i]);
 
@@ -230,7 +239,7 @@ public class GameManager {
             randomWall = wallPairFirstIndex;
             passableWalls[randomWall] = true;
             for (int i = randomWall + 1; i < Wall.NUMBER_OF_WALLS; i++)
-                passableWalls[randomWall] = mWallColors[randomWall].equals(mWallColors[i]);
+                passableWalls[i] = mWallColors[randomWall].equals(mWallColors[i]);
         }
 
         mCurrentGameBall = new GameBall(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);

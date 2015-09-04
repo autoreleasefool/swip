@@ -24,11 +24,11 @@ public class Wall
     public static final int NUMBER_OF_WALLS = 4;
 
     /** Number of turns that must pass before a new color is added to the game. */
-    public static final int NUMBER_OF_TURNS_BEFORE_NEW_COLOR = 8;
+    public static final int TURNS_BEFORE_NEW_COLOR = 8;
     /** Number of turns that must pass before two walls can be the same color. */
-    public static final int NUMBER_OF_TURNS_BEFORE_SAME_WALL_COLORS = 20;
+    public static final int TURNS_BEFORE_SAME_WALL_COLORS = 20;
     /** Used to determine size of walls as a percentage of the screen size. */
-    private static final float WALL_SIZE_MULTIPLIER = 0.1f;
+    private static final float WALL_SIZE_MULTIPLIER = 0.15f;
 
     /** Array of the possible values for {@code Side}. */
     private static final Side[] POSSIBLE_SIDES = Side.values();
