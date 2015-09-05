@@ -37,6 +37,8 @@ public class GameInputProcessor
     private int mLastFingerY;
     /** Indicates if the user's finger is currently on the screen. */
     private boolean mFingerDown;
+    /** Indicates if the user took their finger off the screen in the last tick. */
+    private boolean mFingerJustReleased;
 
     /** Past locations of the user's finger. */
     private final LinkedList<Triplet<Integer, Integer, Long>> mFingerHistory = new LinkedList<>();
@@ -46,7 +48,7 @@ public class GameInputProcessor
     /**
      * Returns last known x location of finger on screen. Origin is the left of the screen.
      *
-     * @return {@code mLastFingerX}
+     * @return x location of the user's first finger
      */
     public int getLastFingerX() {
         return mLastFingerX;
@@ -55,7 +57,7 @@ public class GameInputProcessor
     /**
      * Returns last known y location of finger on screen. Origin is the bottom of the screen.
      *
-     * @return {@code mLastFingerY}
+     * @return y location of the user's first finger
      */
     public int getLastFingerY() {
         return mScreenHeight - mLastFingerY;
@@ -64,10 +66,19 @@ public class GameInputProcessor
     /**
      * Checks if the user's finger is on the screen. Only considers the first finger on the screen.
      *
-     * @return {@code mFingerDown}
+     * @return {@code true} if the user's first finger is on the screen
      */
     public boolean isFingerDown() {
         return mFingerDown;
+    }
+
+    /**
+     * Checks if the user has released their finger since the last tick.
+     *
+     * @return {@code true} if the user released their finger from the screen recently
+     */
+    public boolean wasFingerJustReleased() {
+        return mFingerJustReleased;
     }
 
     /**
@@ -87,6 +98,13 @@ public class GameInputProcessor
         }
 
         return mFingerDragVelocity;
+    }
+
+    /**
+     * Updates input objects.
+     */
+    public void tick() {
+        mFingerJustReleased = false;
     }
 
     /**
@@ -122,6 +140,7 @@ public class GameInputProcessor
         mLastFingerX = screenX;
         mLastFingerY = screenY;
         mFingerDown = false;
+        mFingerJustReleased = true;
 
         mFingerHistory.add(Triplet.create(screenX, screenY, TimeUtils.millis()));
         return true;

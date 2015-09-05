@@ -5,7 +5,9 @@ import ca.josephroque.swip.entity.GameBall;
 import ca.josephroque.swip.entity.Wall;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.TimeUtils;
 
@@ -160,10 +162,17 @@ public class GameManager {
      * @param shapeRenderer graphics context to draw to
      */
     public void draw(GameScreen.GameState gameState, ShapeRenderer shapeRenderer) {
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
         if (mCurrentGameBall != null)
             mCurrentGameBall.draw(shapeRenderer, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
             wall.draw(shapeRenderer);
+
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     /**

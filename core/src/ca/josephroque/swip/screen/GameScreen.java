@@ -134,6 +134,9 @@ public class GameScreen
         } else if (mGameManager.isGameOver()) {
             setState(GameState.Ended);
         }
+
+        // Clear up input
+        mGameInput.tick();
     }
 
     /**
@@ -141,10 +144,6 @@ public class GameScreen
      */
     private void draw() {
         mShapeRenderer.setProjectionMatrix(mPrimaryCamera.combined);
-
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        mShapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         mGameManager.draw(mGameState, mShapeRenderer);
 
@@ -162,9 +161,6 @@ public class GameScreen
             default:
                 throw new IllegalStateException("invalid game state.");
         }
-
-        mShapeRenderer.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     /**
