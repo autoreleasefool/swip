@@ -1,6 +1,5 @@
 package ca.josephroque.swip.entity;
 
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Shape2D;
 import com.badlogic.gdx.math.Vector2;
 
@@ -30,20 +29,6 @@ public abstract class Entity {
      */
     public abstract void tick(float delta);
 
-    /**
-     * Draws the object to the screen.
-     *
-     * @param shapeRenderer graphics context to draw to
-     */
-    public abstract void draw(ShapeRenderer shapeRenderer);
-
-    /**
-     * Adjust the size of the object relative to the screen dimensions.
-     *
-     * @param screenWidth width of the screen
-     * @param screenHeight height of the screen
-     */
-    public abstract void resize(int screenWidth, int screenHeight);
 
     /**
      * Gets the entity's horizontal position.

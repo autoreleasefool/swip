@@ -1,7 +1,8 @@
 package ca.josephroque.swip.entity;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import ca.josephroque.swip.game.GameTexture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.ArrayList;
@@ -40,116 +41,103 @@ public class Wall
     /** Indicates the last wall that was drawn, to ensure walls are drawn in the correct order. */
     private static int sLastWallDrawn;
 
-    /** All possible colors which a wall can be. */
-    private static final Color[] ALL_POSSIBLE_WALL_COLORS = {
-            Color.RED,
-            Color.BLUE,
-            Color.YELLOW,
-            Color.GREEN,
-            Color.ORANGE,
-            Color.GRAY,
-            Color.MAGENTA,
-            Color.PURPLE,
-            Color.TAN,
-            Color.CYAN,
-            Color.BROWN,
-    };
     /** The chance that two walls will be given the same color in a turn. */
     public static final float CHANCE_OF_SAME_WALL_COLOR = 0.2f;
-    /** List of the current active colors, a subset of {@code ALL_POSSIBLE_WALL_COLORS}. */
-    private static List<Color> sListActiveColors = new ArrayList<>(ALL_POSSIBLE_WALL_COLORS.length);
+    /** List of the current active colors. */
+    private static List<GameTexture.GameColor> sListActiveColors = new ArrayList<>(GameTexture.NUMBER_OF_COLORS);
 
     /** The side of the screen which this wall represents. */
     private final Side mWallSide;
     /** Color of the wall. */
-    private Color mWallColor;
+    private GameTexture.GameColor mWallColor;
 
-    /** Rectangle which defines the bounds of the wall. */
-    private Rectangle mBoundingBox;
+    /** Sprite which defines the bounds of the wall and its texture. */
+    private Sprite mSprite;
 
     /**
      * Initializes a new wall by converting the provided int to a {@code Side}.
      *
      * @param wallSide side of the screen
+     * @param wallColor color of the wall
+     * @param gameTexture textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
-    public Wall(int wallSide, int screenWidth, int screenHeight) {
-        this(POSSIBLE_SIDES[wallSide], screenWidth, screenHeight);
+    public Wall(int wallSide,
+                GameTexture.GameColor wallColor,
+                GameTexture gameTexture,
+                int screenWidth,
+                int screenHeight) {
+        this(POSSIBLE_SIDES[wallSide], wallColor, gameTexture, screenWidth, screenHeight);
     }
 
     /**
      * Initializes a new wall with the given side, then adjusts size of the wall to fit the screen.
      *
      * @param wallSide side of the screen
+     * @param wallColor color of the wall
+     * @param gameTexture textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
-    public Wall(Side wallSide, int screenWidth, int screenHeight) {
+    public Wall(Side wallSide,
+                GameTexture.GameColor wallColor,
+                GameTexture gameTexture,
+                int screenWidth,
+                int screenHeight) {
         if (!sWallsInitialized)
             throw new IllegalStateException("Must call initialize before creating any instances");
 
         mWallSide = wallSide;
-        resize(screenWidth, screenHeight);
+        mWallColor = wallColor;
+        resize(gameTexture, screenWidth, screenHeight);
     }
 
-    @Override
-    public void resize(int screenWidth, int screenHeight) {
+    /**
+     * Adjust the size of the object relative to the screen dimensions.
+     *
+     * @param gameTexture textures for game objects
+     * @param screenWidth width of the screen
+     * @param screenHeight height of the screen
+     */
+    public void resize(GameTexture gameTexture, int screenWidth, int screenHeight) {
         sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
-        if (mBoundingBox == null)
-            mBoundingBox = new Rectangle(0, 0, 0, 0);
+        if (mSprite == null)
+            mSprite = new Sprite(gameTexture.getWallTexture(mWallSide, mWallColor));
 
         switch (mWallSide) {
             case Top:
-                mBoundingBox.x = 0;
-                mBoundingBox.y = screenHeight - sDefaultWallSize;
-                mBoundingBox.width = screenWidth;
-                mBoundingBox.height = sDefaultWallSize;
+                mSprite.setBounds(0, screenHeight - sDefaultWallSize, screenWidth, sDefaultWallSize);
                 break;
             case Bottom:
-                mBoundingBox.x = 0;
-                mBoundingBox.y = 0;
-                mBoundingBox.width = screenWidth;
-                mBoundingBox.height = sDefaultWallSize;
+                mSprite.setBounds(0, 0, screenWidth, sDefaultWallSize);
                 break;
             case Left:
-                mBoundingBox.x = 0;
-                mBoundingBox.y = 0;
-                mBoundingBox.width = sDefaultWallSize;
-                mBoundingBox.height = screenHeight;
+                mSprite.setBounds(0, 0, sDefaultWallSize, screenHeight);
                 break;
             case Right:
-                mBoundingBox.x = screenWidth - sDefaultWallSize;
-                mBoundingBox.y = 0;
-                mBoundingBox.width = sDefaultWallSize;
-                mBoundingBox.height = screenHeight;
+                mSprite.setBounds(screenWidth - sDefaultWallSize, 0, sDefaultWallSize, screenHeight);
                 break;
             default:
                 throw new IllegalArgumentException("invalid wall side.");
         }
     }
 
-    @Override
-    public void draw(ShapeRenderer shapeRenderer) {
+    /**
+     * Draws the wall to the screen.
+     *
+     * @param spriteBatch graphics context to draw to
+     */
+    public void draw(SpriteBatch spriteBatch) {
         if (mWallSide.ordinal() != sLastWallDrawn + 1)
             throw new IllegalStateException("must draw walls in the natural order determined by Wall.Side");
-        sLastWallDrawn = mWallSide.ordinal();
 
-        switch (mWallSide) {
-            case Top:
-            case Bottom:
-                drawHorizontalWall(shapeRenderer);
-                break;
-            case Right:
-                // Reset last wall drawn, since all walls should have been drawn now
-                sLastWallDrawn = -1;
-            case Left:
-                drawVerticalWall(shapeRenderer);
-                drawEdgeSlants(shapeRenderer, mWallSide == Side.Left);
-                break;
-            default:
-                throw new IllegalArgumentException("invalid wall side.");
-        }
+        if (mWallSide == Side.Right)
+            sLastWallDrawn = -1;
+        else
+            sLastWallDrawn = mWallSide.ordinal();
+
+        mSprite.draw(spriteBatch);
     }
 
     @Override
@@ -158,60 +146,19 @@ public class Wall
     }
 
     /**
-     * Draws a wall along the screen horizontally.
-     *
-     * @param shapeRenderer graphics context to draw to
-     */
-    private void drawHorizontalWall(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(mWallColor);
-        shapeRenderer.rect(getX(), getY(), getWidth(), getHeight());
-    }
-
-    /**
-     * Draws a wall along the screen vertically, leaving room at the top and bottom.
-     *
-     * @param shapeRenderer graphics context to draw to
-     */
-    private void drawVerticalWall(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(mWallColor);
-        shapeRenderer.rect(getX(), getY() + sDefaultWallSize, getWidth(), getHeight() - sDefaultWallSize * 2);
-    }
-
-    /**
-     * Draws triangles at the top and bottom of the wall.
-     *
-     * @param shapeRenderer graphics context to draw to
-     * @param facingRight if true, the slanted edges of the triangles will face the right of the screen. If false, they
-     * will face the left.
-     */
-    private void drawEdgeSlants(ShapeRenderer shapeRenderer, boolean facingRight) {
-        if (mWallSide == Side.Top || mWallSide == Side.Bottom)
-            throw new IllegalStateException("cannot draw slants on horizontal walls.");
-
-        float thirdVertexX = (facingRight)
-                ? getX()
-                : getX() + getWidth();
-        shapeRenderer.triangle(getX(),
-                getY() + sDefaultWallSize,
-                getX() + getWidth(),
-                getY() + sDefaultWallSize,
-                thirdVertexX,
-                getY());
-        shapeRenderer.triangle(getX(),
-                getY() + getHeight() - sDefaultWallSize,
-                getX() + getWidth(),
-                getY() + getHeight() - sDefaultWallSize,
-                thirdVertexX,
-                getY() + getHeight());
-    }
-
-    /**
      * Updates the color of the wall.
      *
-     * @param wallColor new value for {@code mWallColor}
+     * @param gameTexture textures for game objects
+     * @param wallColor new color
      */
-    public void updateWallColor(Color wallColor) {
+    public void updateWallColor(GameTexture gameTexture, GameTexture.GameColor wallColor) {
         mWallColor = wallColor;
+        final float x = getX();
+        final float y = getY();
+        final float width = getWidth();
+        final float height = getHeight();
+        mSprite = new Sprite(gameTexture.getWallTexture(mWallSide, mWallColor));
+        mSprite.setBounds(x, y, width, height);
     }
 
     /**
@@ -232,7 +179,7 @@ public class Wall
      */
     public static void initialize(int screenWidth, int screenHeight) {
         sListActiveColors.clear();
-        sListActiveColors.addAll(Arrays.asList(ALL_POSSIBLE_WALL_COLORS).subList(0, NUMBER_OF_WALLS));
+        sListActiveColors.addAll(Arrays.asList(GameTexture.GAME_COLORS).subList(0, NUMBER_OF_WALLS));
 
         sLastWallDrawn = -1;
         sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
@@ -246,8 +193,8 @@ public class Wall
         if (!sWallsInitialized)
             throw new IllegalStateException("Must initialize walls.");
 
-        if (sListActiveColors.size() < ALL_POSSIBLE_WALL_COLORS.length)
-            sListActiveColors.add(ALL_POSSIBLE_WALL_COLORS[sListActiveColors.size()]);
+        if (sListActiveColors.size() < GameTexture.NUMBER_OF_COLORS)
+            sListActiveColors.add(GameTexture.GAME_COLORS[sListActiveColors.size()]);
     }
 
     /**
@@ -261,7 +208,7 @@ public class Wall
      * @return if there are two walls the same color, then the value returned is the index of the first of the pair. If
      * there are no two walls the same, this method returns -1
      */
-    public static int getRandomWallColors(Random random, Color[] wallColors, boolean allowSame) {
+    public static int getRandomWallColors(Random random, GameTexture.GameColor[] wallColors, boolean allowSame) {
         if (!sWallsInitialized)
             throw new IllegalStateException("Must initialize walls.");
         if (wallColors.length != NUMBER_OF_WALLS)
@@ -293,27 +240,27 @@ public class Wall
 
     @Override
     public float getX() {
-        return mBoundingBox.getX();
+        return mSprite.getX();
     }
 
     @Override
     public float getY() {
-        return mBoundingBox.getY();
+        return mSprite.getY();
     }
 
     @Override
     public float getWidth() {
-        return mBoundingBox.getWidth();
+        return mSprite.getWidth();
     }
 
     @Override
     public float getHeight() {
-        return mBoundingBox.getHeight();
+        return mSprite.getHeight();
     }
 
     @Override
     public Rectangle getBounds() {
-        return mBoundingBox;
+        return mSprite.getBoundingRectangle();
     }
 
     @Override

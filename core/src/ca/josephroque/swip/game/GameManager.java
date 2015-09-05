@@ -6,9 +6,8 @@ import ca.josephroque.swip.entity.Wall;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.TimeUtils;
 
 import java.util.Random;
@@ -41,6 +40,9 @@ public class GameManager {
     /** Generates random numbers for the game. */
     private final Random mRandomNumberGenerator = new Random();
 
+    /** Manages textures for game objects. */
+    private GameTexture mGameTextures;
+
     /** Time at which the game began, in milliseconds. */
     private long mGameStartTime;
     /** Indicates if the game has ended. */
@@ -53,7 +55,7 @@ public class GameManager {
     /** The four walls in the game. */
     private final Wall[] mWalls;
     /** Colors of the four walls. */
-    private final Color[] mWallColors;
+    private final GameTexture.GameColor[] mWallColors;
 
     /** Time that the current turn started at. */
     private long mStartOfTurn;
@@ -64,24 +66,24 @@ public class GameManager {
     /** Total number of turns that have passed since the game began (i.e. the player's score). */
     private int mTotalTurns;
 
-
     /**
      * Sets up a new game manager.
      *
+     * @param gameTexture textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
-    public GameManager(int screenWidth, int screenHeight) {
+    public GameManager(GameTexture gameTexture, int screenWidth, int screenHeight) {
         mScreenWidth = screenWidth;
         mScreenHeight = screenHeight;
+        mGameTextures = gameTexture;
 
         Wall.initialize(screenWidth, screenHeight);
-        mWallColors = new Color[Wall.NUMBER_OF_WALLS];
+        mWallColors = new GameTexture.GameColor[Wall.NUMBER_OF_WALLS];
         Wall.getRandomWallColors(mRandomNumberGenerator, mWallColors, false);
         mWalls = new Wall[Wall.NUMBER_OF_WALLS];
         for (int i = 0; i < mWalls.length; i++) {
-            mWalls[i] = new Wall(i, mScreenWidth, mScreenHeight);
-            mWalls[i].updateWallColor(mWallColors[i]);
+            mWalls[i] = new Wall(i, mWallColors[i], gameTexture, mScreenWidth, mScreenHeight);
         }
     }
 
@@ -159,19 +161,18 @@ public class GameManager {
      * Draws the game to the screen.
      *
      * @param gameState the current state of the application
-     * @param shapeRenderer graphics context to draw to
+     * @param spriteBatch graphics context to draw to
+     * @param gameTexture textures for game objects
      */
-    public void draw(GameScreen.GameState gameState, ShapeRenderer shapeRenderer) {
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+    public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch, GameTexture gameTexture) {
+        spriteBatch.begin();
 
         if (mCurrentGameBall != null)
-            mCurrentGameBall.draw(shapeRenderer, mTurnLength, mCurrentTurnDuration);
+            mCurrentGameBall.draw(spriteBatch, gameTexture, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
-            wall.draw(shapeRenderer);
+            wall.draw(spriteBatch);
 
-        shapeRenderer.end();
+        spriteBatch.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
@@ -203,8 +204,7 @@ public class GameManager {
         // Creating the four walls
         Wall.getRandomWallColors(mRandomNumberGenerator, mWallColors, false);
         for (int i = 0; i < mWalls.length; i++) {
-            mWalls[i] = new Wall(i, mScreenWidth, mScreenHeight);
-            mWalls[i].updateWallColor(mWallColors[i]);
+            mWalls[i] = new Wall(i, mWallColors[i], mGameTextures, mScreenWidth, mScreenHeight);
         }
 
         // Creating the ball
@@ -236,7 +236,7 @@ public class GameManager {
                 mWallColors,
                 mTotalTurns > Wall.TURNS_BEFORE_SAME_WALL_COLORS);
         for (int i = 0; i < mWalls.length; i++)
-            mWalls[i].updateWallColor(mWallColors[i]);
+            mWalls[i].updateWallColor(mGameTextures, mWallColors[i]);
 
         // Generating new ball at center of screen
         final int randomWall;
@@ -270,7 +270,7 @@ public class GameManager {
         // Resizing entities on screen
         if (mWalls != null) {
             for (Wall wall : mWalls)
-                wall.resize(width, height);
+                wall.resize(mGameTextures, width, height);
         }
 
         if (mCurrentGameBall != null)

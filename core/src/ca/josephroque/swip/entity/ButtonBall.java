@@ -1,10 +1,9 @@
 package ca.josephroque.swip.entity;
 
+import ca.josephroque.swip.game.GameTexture;
 import ca.josephroque.swip.input.GameInputProcessor;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 /**
  * Balls for offering button interactions.
@@ -27,7 +26,7 @@ public class ButtonBall
      * @param x starting horizontal position of the ball
      * @param y starting vertical position of the ball
      */
-    public ButtonBall(Color ballColor, TextureRegion buttonIcon, float x, float y) {
+    public ButtonBall(GameTexture.GameColor ballColor, TextureRegion buttonIcon, float x, float y) {
         super(ballColor, x, y);
     }
 
@@ -45,11 +44,11 @@ public class ButtonBall
     /**
      * Draws the ball and its icon to the screen.
      *
-     * @param shapeRenderer graphics context to draw shapes to
-     * @param spriteBatch graphics context to draw images to
+     * @param spriteBatch graphics context to draw to
+     * @param gameTexture textures for game objects
      */
-    public void draw(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch) {
-        super.draw(shapeRenderer);
+    public void draw(SpriteBatch spriteBatch, GameTexture gameTexture) {
+        super.draw(spriteBatch, gameTexture);
 
         if (mButtonIcon != null)
             drawIcon(spriteBatch);

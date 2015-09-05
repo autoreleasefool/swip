@@ -1,7 +1,7 @@
 package ca.josephroque.swip.entity;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import ca.josephroque.swip.game.GameTexture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.utils.TimeUtils;
 
@@ -30,7 +30,7 @@ public abstract class BasicBall
     /** Time in milliseconds that this object was created at. */
     private long mTimeCreated;
     /** Color of the ball. */
-    private final Color mBallColor;
+    private final GameTexture.GameColor mBallColor;
 
     /** Circle which defines the ball's positioning. */
     private Circle mBoundingCircle;
@@ -42,7 +42,7 @@ public abstract class BasicBall
      * @param x horizontal position of the ball
      * @param y vertical position of the ball
      */
-    public BasicBall(Color color, float x, float y) {
+    public BasicBall(GameTexture.GameColor color, float x, float y) {
         if (!sBallsInitialized)
             throw new IllegalStateException("Must call initialize before creating any instances");
 
@@ -51,7 +51,12 @@ public abstract class BasicBall
         mBoundingCircle = new Circle(x, y, 0);
     }
 
-    @Override
+    /**
+     * Adjust the size of the object relative to the screen dimensions.
+     *
+     * @param screenWidth width of the screen
+     * @param screenHeight height of the screen
+     */
     public void resize(int screenWidth, int screenHeight) {
         sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
         mBoundingCircle.setRadius(sDefaultBallRadius * mScale * 2);
@@ -66,10 +71,18 @@ public abstract class BasicBall
         scale();
     }
 
-    @Override
-    public void draw(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(mBallColor);
-        shapeRenderer.circle(getX(), getY(), getRadius());
+    /**
+     * Draws the ball to the screen.
+     *
+     * @param spriteBatch graphics context to draw to
+     * @param gameTexture textures for game objects
+     */
+    public void draw(SpriteBatch spriteBatch, GameTexture gameTexture) {
+        spriteBatch.draw(gameTexture.getBallTexture(mBallColor),
+                getX() - getRadius(),
+                getY() - getRadius(),
+                getWidth(),
+                getHeight());
     }
 
     /**

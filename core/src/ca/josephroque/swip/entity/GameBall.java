@@ -1,8 +1,9 @@
 package ca.josephroque.swip.entity;
 
+import ca.josephroque.swip.game.GameTexture;
 import ca.josephroque.swip.input.GameInputProcessor;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
  * Balls for swiping into the walls.
@@ -42,7 +43,7 @@ public class GameBall
      * @param x starting horizontal position of the ball
      * @param y starting vertical position of the ball
      */
-    public GameBall(Color ballColor, boolean[] passableWalls, float x, float y) {
+    public GameBall(GameTexture.GameColor ballColor, boolean[] passableWalls, float x, float y) {
         super(ballColor, x, y);
         mPassableWalls = passableWalls;
     }
@@ -146,30 +147,13 @@ public class GameBall
      * Draws the ball and its overlay to the screen. The overlay is based on the amount of time that is remaining in the
      * turn.
      *
-     * @param shapeRenderer graphics context to draw to
+     * @param spriteBatch graphics context to draw to
+     * @param gameTexture textures for game objects
      * @param maxTurnLength total number of milliseconds the current turn will take
      * @param currentTurnLength duration of the current turn
      */
-    public void draw(ShapeRenderer shapeRenderer, int maxTurnLength, int currentTurnLength) {
-        super.draw(shapeRenderer);
-        drawBallOverlay(shapeRenderer, maxTurnLength, currentTurnLength);
-    }
-
-    /**
-     * Draws an overlay over the ball to indicate the amount of time remaining in a turn.
-     *
-     * @param shapeRenderer graphics context to draw to
-     * @param maxTurnLength total number of milliseconds the current turn will take
-     * @param currentTurnLength duration of the current turn
-     */
-    private void drawBallOverlay(ShapeRenderer shapeRenderer,
-                                 int maxTurnLength,
-                                 int currentTurnLength) {
-        // TODO: determine number of segments based on degrees
-        final int segments = 100;
-        final float degrees = -(currentTurnLength / (float) maxTurnLength) * MAX_OVERLAY_DEGREES;
-        shapeRenderer.setColor(BALL_TIMER_COLOR);
-        shapeRenderer.arc(getX(), getY(), getRadius(), OVERLAY_STARTING_DEGREE, degrees, segments);
+    public void draw(SpriteBatch spriteBatch, GameTexture gameTexture, int maxTurnLength, int currentTurnLength) {
+        super.draw(spriteBatch, gameTexture);
     }
 
     /**

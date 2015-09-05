@@ -1,12 +1,13 @@
 package ca.josephroque.swip.screen;
 
 import ca.josephroque.swip.game.GameManager;
+import ca.josephroque.swip.game.GameTexture;
 import ca.josephroque.swip.input.GameInputProcessor;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -20,14 +21,17 @@ public class GameScreen
     @SuppressWarnings("unused")
     private static final String TAG = "GameScreen";
 
-    /** Allows rendering of basic shapes on the screen. */
-    private ShapeRenderer mShapeRenderer;
-    /** Handles gesture input events. */
-    private GameInputProcessor mGameInput;
+    /** Allows rendering of graphics on the screen. */
+    private SpriteBatch mSpriteBatch;
     /** Primary camera of the game. */
     private OrthographicCamera mPrimaryCamera;
     /** Default viewport of the game. */
     private Viewport mPrimaryViewport;
+
+    /** Handles gesture input events. */
+    private GameInputProcessor mGameInput;
+    /** Manages textures for game objects. */
+    private GameTexture mGameTextures;
 
     /** Width of the screen. */
     private int mScreenWidth;
@@ -64,14 +68,15 @@ public class GameScreen
         mPrimaryViewport.apply();
 
         // Preparing UI objects
-        mShapeRenderer = new ShapeRenderer();
+        mSpriteBatch = new SpriteBatch();
+        mGameTextures = new GameTexture();
 
         // Creating gesture handler
         mGameInput = new GameInputProcessor();
         Gdx.input.setInputProcessor(mGameInput);
 
         // Setting up the game
-        mGameManager = new GameManager(mScreenWidth, mScreenHeight);
+        mGameManager = new GameManager(mGameTextures, mScreenWidth, mScreenHeight);
 
         // Displaying the main menu
         setState(GameState.MainMenu);
@@ -103,7 +108,8 @@ public class GameScreen
 
     @Override
     public void dispose() {
-        mShapeRenderer.dispose();
+        mSpriteBatch.dispose();
+        mGameTextures.dispose();
     }
 
     /**
@@ -143,9 +149,9 @@ public class GameScreen
      * Draws the game to the screen.
      */
     private void draw() {
-        mShapeRenderer.setProjectionMatrix(mPrimaryCamera.combined);
+        mSpriteBatch.setProjectionMatrix(mPrimaryCamera.combined);
 
-        mGameManager.draw(mGameState, mShapeRenderer);
+        mGameManager.draw(mGameState, mSpriteBatch, mGameTextures);
 
         switch (mGameState) {
             case MainMenu:
