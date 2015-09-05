@@ -1,7 +1,7 @@
 package ca.josephroque.swip.entity;
 
 import ca.josephroque.swip.game.GameTexture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -51,24 +51,22 @@ public class Wall
     /** Color of the wall. */
     private GameTexture.GameColor mWallColor;
 
-    /** Sprite which defines the bounds of the wall and its texture. */
-    private Sprite mSprite;
+    /** Rectangle which defines the bounds of the wall. */
+    private Rectangle mBoundingBox;
 
     /**
      * Initializes a new wall by converting the provided int to a {@code Side}.
      *
      * @param wallSide side of the screen
      * @param wallColor color of the wall
-     * @param gameTexture textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
     public Wall(int wallSide,
                 GameTexture.GameColor wallColor,
-                GameTexture gameTexture,
                 int screenWidth,
                 int screenHeight) {
-        this(POSSIBLE_SIDES[wallSide], wallColor, gameTexture, screenWidth, screenHeight);
+        this(POSSIBLE_SIDES[wallSide], wallColor, screenWidth, screenHeight);
     }
 
     /**
@@ -76,13 +74,11 @@ public class Wall
      *
      * @param wallSide side of the screen
      * @param wallColor color of the wall
-     * @param gameTexture textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
     public Wall(Side wallSide,
                 GameTexture.GameColor wallColor,
-                GameTexture gameTexture,
                 int screenWidth,
                 int screenHeight) {
         if (!sWallsInitialized)
@@ -90,33 +86,36 @@ public class Wall
 
         mWallSide = wallSide;
         mWallColor = wallColor;
-        resize(gameTexture, screenWidth, screenHeight);
+        resize(screenWidth, screenHeight);
     }
 
     /**
      * Adjust the size of the object relative to the screen dimensions.
      *
-     * @param gameTexture textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
-    public void resize(GameTexture gameTexture, int screenWidth, int screenHeight) {
+    public void resize(int screenWidth, int screenHeight) {
         sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
-        if (mSprite == null)
-            mSprite = new Sprite(gameTexture.getWallTexture(mWallSide, mWallColor));
+        if (mBoundingBox == null)
+            mBoundingBox = new Rectangle(0, 0, 0, 0);
 
         switch (mWallSide) {
             case Top:
-                mSprite.setBounds(0, screenHeight - sDefaultWallSize, screenWidth, sDefaultWallSize);
+                mBoundingBox.setPosition(0, screenHeight - sDefaultWallSize);
+                mBoundingBox.setSize(screenWidth, sDefaultWallSize);
                 break;
             case Bottom:
-                mSprite.setBounds(0, 0, screenWidth, sDefaultWallSize);
+                mBoundingBox.setPosition(0, 0);
+                mBoundingBox.setSize(screenWidth, sDefaultWallSize);
                 break;
             case Left:
-                mSprite.setBounds(0, 0, sDefaultWallSize, screenHeight);
+                mBoundingBox.setPosition(0, 0);
+                mBoundingBox.setSize(sDefaultWallSize, screenHeight);
                 break;
             case Right:
-                mSprite.setBounds(screenWidth - sDefaultWallSize, 0, sDefaultWallSize, screenHeight);
+                mBoundingBox.setPosition(screenWidth - sDefaultWallSize, 0);
+                mBoundingBox.setSize(sDefaultWallSize, screenHeight);
                 break;
             default:
                 throw new IllegalArgumentException("invalid wall side.");
@@ -127,8 +126,9 @@ public class Wall
      * Draws the wall to the screen.
      *
      * @param spriteBatch graphics context to draw to
+     * @param gameTexture textures of game objects
      */
-    public void draw(SpriteBatch spriteBatch) {
+    public void draw(SpriteBatch spriteBatch, GameTexture gameTexture) {
         if (mWallSide.ordinal() != sLastWallDrawn + 1)
             throw new IllegalStateException("must draw walls in the natural order determined by Wall.Side");
 
@@ -137,7 +137,26 @@ public class Wall
         else
             sLastWallDrawn = mWallSide.ordinal();
 
-        mSprite.draw(spriteBatch);
+        if (mWallSide == Side.Top || mWallSide == Side.Bottom) {
+            Gdx.app.debug(TAG, "X: " + getX() + " Y: " + getY() + " Width: " + getWidth() + " Height: " + getHeight());
+            final float rotation = -90;
+            spriteBatch.draw(gameTexture.getWallTexture(mWallSide, mWallColor),
+                    getX(),
+                    getY() + sDefaultWallSize,
+                    0,
+                    0,
+                    getHeight(),
+                    getWidth(),
+                    1,
+                    1,
+                    rotation);
+        } else {
+            spriteBatch.draw(gameTexture.getWallTexture(mWallSide, mWallColor),
+                    getX(),
+                    getY(),
+                    getWidth(),
+                    getHeight());
+        }
     }
 
     @Override
@@ -148,17 +167,10 @@ public class Wall
     /**
      * Updates the color of the wall.
      *
-     * @param gameTexture textures for game objects
      * @param wallColor new color
      */
-    public void updateWallColor(GameTexture gameTexture, GameTexture.GameColor wallColor) {
+    public void updateWallColor(GameTexture.GameColor wallColor) {
         mWallColor = wallColor;
-        final float x = getX();
-        final float y = getY();
-        final float width = getWidth();
-        final float height = getHeight();
-        mSprite = new Sprite(gameTexture.getWallTexture(mWallSide, mWallColor));
-        mSprite.setBounds(x, y, width, height);
     }
 
     /**
@@ -240,27 +252,27 @@ public class Wall
 
     @Override
     public float getX() {
-        return mSprite.getX();
+        return mBoundingBox.getX();
     }
 
     @Override
     public float getY() {
-        return mSprite.getY();
+        return mBoundingBox.getY();
     }
 
     @Override
     public float getWidth() {
-        return mSprite.getWidth();
+        return mBoundingBox.getWidth();
     }
 
     @Override
     public float getHeight() {
-        return mSprite.getHeight();
+        return mBoundingBox.getHeight();
     }
 
     @Override
     public Rectangle getBounds() {
-        return mSprite.getBoundingRectangle();
+        return mBoundingBox;
     }
 
     @Override

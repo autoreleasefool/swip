@@ -59,7 +59,7 @@ public abstract class BasicBall
      */
     public void resize(int screenWidth, int screenHeight) {
         sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
-        mBoundingCircle.setRadius(sDefaultBallRadius * mScale * 2);
+        mBoundingCircle.setRadius(sDefaultBallRadius * mScale);
     }
 
     /**
