@@ -1,7 +1,6 @@
 package ca.josephroque.swip.entity;
 
 import ca.josephroque.swip.game.GameTexture;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -137,26 +136,74 @@ public class Wall
         else
             sLastWallDrawn = mWallSide.ordinal();
 
-        if (mWallSide == Side.Top || mWallSide == Side.Bottom) {
-            Gdx.app.debug(TAG, "X: " + getX() + " Y: " + getY() + " Width: " + getWidth() + " Height: " + getHeight());
-            final float rotation = -90;
-            spriteBatch.draw(gameTexture.getWallTexture(mWallSide, mWallColor),
-                    getX(),
-                    getY() + sDefaultWallSize,
-                    0,
-                    0,
-                    getHeight(),
-                    getWidth(),
-                    1,
-                    1,
-                    rotation);
-        } else {
-            spriteBatch.draw(gameTexture.getWallTexture(mWallSide, mWallColor),
-                    getX(),
-                    getY(),
-                    getWidth(),
-                    getHeight());
-        }
+        if (mWallSide == Side.Top || mWallSide == Side.Bottom)
+            drawHorizontalWall(spriteBatch, gameTexture);
+        else
+            drawVerticalWall(spriteBatch, gameTexture);
+    }
+
+    /**
+     * Draws a horizontal wall to the screen.
+     *
+     * @param spriteBatch graphics context to draw to
+     * @param gameTexture textures of game objects
+     */
+    private void drawHorizontalWall(SpriteBatch spriteBatch, GameTexture gameTexture) {
+        final float rotation = -90;
+        spriteBatch.draw(gameTexture.getWallTexture(mWallSide, mWallColor),
+                getX() + sDefaultWallSize,
+                getY() + sDefaultWallSize,
+                0,
+                0,
+                getHeight(),
+                getWidth() - sDefaultWallSize * 2,
+                1,
+                1,
+                rotation);
+        spriteBatch.draw(gameTexture.getWallEdge(mWallSide, mWallColor, true),
+                getX() + getWidth() - sDefaultWallSize,
+                getY() + sDefaultWallSize,
+                0,
+                0,
+                sDefaultWallSize,
+                sDefaultWallSize,
+                1,
+                1,
+                rotation);
+        spriteBatch.draw(gameTexture.getWallEdge(mWallSide, mWallColor, false),
+                getX(),
+                getY() + sDefaultWallSize,
+                0,
+                0,
+                sDefaultWallSize,
+                sDefaultWallSize,
+                1,
+                1,
+                rotation);
+    }
+
+    /**
+     * Draws a vertical wall to the screen.
+     *
+     * @param spriteBatch graphics context to draw to
+     * @param gameTexture textures of game objects
+     */
+    private void drawVerticalWall(SpriteBatch spriteBatch, GameTexture gameTexture) {
+        spriteBatch.draw(gameTexture.getWallTexture(mWallSide, mWallColor),
+                getX(),
+                getY() + sDefaultWallSize,
+                getWidth(),
+                getHeight() - sDefaultWallSize * 2);
+        spriteBatch.draw(gameTexture.getWallEdge(mWallSide, mWallColor, true),
+                getX(),
+                getY() + getHeight() - sDefaultWallSize,
+                sDefaultWallSize,
+                sDefaultWallSize);
+        spriteBatch.draw(gameTexture.getWallEdge(mWallSide, mWallColor, false),
+                getX(),
+                getY(),
+                sDefaultWallSize,
+                sDefaultWallSize);
     }
 
     @Override
