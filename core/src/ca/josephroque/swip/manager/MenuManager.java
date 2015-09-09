@@ -19,8 +19,8 @@ public class MenuManager {
     /** Instance of callback interface. */
     private MenuCallback mCallback;
 
-    /** Manages textures for game objects. */
-    private AssetManager mGameTextures;
+    /** Manages textures for menu objects. */
+    private AssetManager mAssetManager;
 
     /** Buttons for menu options. */
     private ButtonBall[] mMenuOptionBalls;
@@ -35,31 +35,31 @@ public class MenuManager {
      */
     public MenuManager(MenuCallback callback, AssetManager assetManager, int screenWidth, int screenHeight) {
         mCallback = callback;
-        mGameTextures = assetManager;
+        mAssetManager = assetManager;
 
         mMenuOptionBalls = new ButtonBall[MenuBallOptions.getSize()];
         mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()]
                 = new ButtonBall(MenuBallOptions.MusicOn,
                 AssetManager.GameColor.Green,
-                mGameTextures.getMenuButtonIconTexture(MenuBallOptions.MusicOn),
+                mAssetManager.getMenuButtonIconTexture(MenuBallOptions.MusicOn),
                 screenWidth / 2 - BasicBall.getDefaultBallRadius() * 2,
                 screenHeight / 2);
         mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()]
                 = new ButtonBall(MenuBallOptions.MusicOff,
                 AssetManager.GameColor.Red,
-                mGameTextures.getMenuButtonIconTexture(MenuBallOptions.MusicOff),
+                mAssetManager.getMenuButtonIconTexture(MenuBallOptions.MusicOff),
                 screenWidth / 2 - BasicBall.getDefaultBallRadius() * 2,
                 screenHeight / 2);
         mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()]
                 = new ButtonBall(MenuBallOptions.SoundEffectsOn,
                 AssetManager.GameColor.Green,
-                mGameTextures.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOn),
+                mAssetManager.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOn),
                 screenWidth / 2 + BasicBall.getDefaultBallRadius() * 2,
                 screenHeight / 2);
         mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()]
                 = new ButtonBall(MenuBallOptions.SoundEffectsOff,
                 AssetManager.GameColor.Red,
-                mGameTextures.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOff),
+                mAssetManager.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOff),
                 screenWidth / 2 + BasicBall.getDefaultBallRadius() * 2,
                 screenHeight / 2);
     }
@@ -130,8 +130,16 @@ public class MenuManager {
      */
     public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         for (ButtonBall option : mMenuOptionBalls) {
-            option.draw(spriteBatch, mGameTextures);
+            option.draw(spriteBatch, mAssetManager);
         }
+    }
+
+    /**
+     * Frees references to objects.
+     */
+    public void dispose() {
+        mCallback = null;
+        mAssetManager = null;
     }
 
     /**

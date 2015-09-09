@@ -39,14 +39,12 @@ public class GameManager {
     private final Random mRandomNumberGenerator = new Random();
 
     /** Manages textures for game objects. */
-    private AssetManager mGameTextures;
+    private AssetManager mAssetManager;
+    /** Instance of callback interface. */
+    private GameCallback mGameCallback;
 
     /** Time at which the game began, in milliseconds. */
     private long mGameStartTime;
-    /** Indicates if the game has ended. */
-    private boolean mGameOver;
-    /** Indicates if the game is ready to be started. */
-    private boolean mGameReadyToStart;
 
     /** The ball being used by the game. */
     private GameBall mCurrentGameBall;
@@ -67,14 +65,16 @@ public class GameManager {
     /**
      * Sets up a new game manager.
      *
+     * @param callback instance of callback interface
      * @param assetManager textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
-    public GameManager(AssetManager assetManager, int screenWidth, int screenHeight) {
+    public GameManager(GameCallback callback, AssetManager assetManager, int screenWidth, int screenHeight) {
         mScreenWidth = screenWidth;
         mScreenHeight = screenHeight;
-        mGameTextures = assetManager;
+        mAssetManager = assetManager;
+        mGameCallback = callback;
 
         Wall.initialize(screenWidth, screenHeight);
         mWallColors = new AssetManager.GameColor[Wall.NUMBER_OF_WALLS];
@@ -116,8 +116,10 @@ public class GameManager {
      */
     private void tickGameStarting(GameInputProcessor gameInput, float delta) {
         // Counts down timer to start of game
-        if (TimeUtils.timeSinceMillis(mGameStartTime) >= TIME_UNTIL_GAME_STARTS)
-            mGameReadyToStart = true;
+        if (TimeUtils.timeSinceMillis(mGameStartTime) >= TIME_UNTIL_GAME_STARTS && mGameCallback != null) {
+            startGame();
+            mGameCallback.startGame();
+        }
     }
 
     /**
@@ -163,9 +165,9 @@ public class GameManager {
      */
     public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         if (mCurrentGameBall != null)
-            mCurrentGameBall.draw(spriteBatch, mGameTextures, mTurnLength, mCurrentTurnDuration);
+            mCurrentGameBall.draw(spriteBatch, mAssetManager, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
-            wall.draw(spriteBatch, mGameTextures);
+            wall.draw(spriteBatch, mAssetManager);
     }
 
     /**
@@ -176,8 +178,6 @@ public class GameManager {
         mTurnLength = INITIAL_TURN_LENGTH;
         mCurrentTurnDuration = 0;
         mTotalTurns = 0;
-        mGameOver = false;
-        mGameReadyToStart = false;
         mGameStartTime = TimeUtils.millis();
 
         mCurrentGameBall = null;
@@ -187,8 +187,6 @@ public class GameManager {
      * Starts the game.
      */
     public void startGame() {
-        mGameReadyToStart = false;
-
         // Setting initial properties of entities
         BasicBall.initialize(mScreenWidth, mScreenHeight);
         Wall.initialize(mScreenWidth, mScreenHeight);
@@ -210,7 +208,8 @@ public class GameManager {
      * Ends the current game - it has been lost.
      */
     public void endGame() {
-        mGameOver = true;
+        if (mGameCallback != null)
+            mGameCallback.endGame();
     }
 
     /**
@@ -270,20 +269,30 @@ public class GameManager {
     }
 
     /**
-     * Is the game over?
-     *
-     * @return returns {@code true} if the game is over
+     * Frees references to objects.
      */
-    public boolean isGameOver() {
-        return mGameOver;
+    public void dispose() {
+        mAssetManager = null;
+        mGameCallback = null;
     }
 
     /**
-     * Is the game ready to start?
-     *
-     * @return {@code true} if the game should be started
+     * Provides callback methods for game interactions.
      */
-    public boolean shouldStartGame() {
-        return mGameReadyToStart;
+    public interface GameCallback {
+        /**
+         * Should start a new game.
+         */
+        void startGame();
+
+        /**
+         * Should pause the current game and display a "pause" menu.
+         */
+        void pauseGame();
+
+        /**
+         * Should end the current game - the player has lost.
+         */
+        void endGame();
     }
 }

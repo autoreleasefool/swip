@@ -66,6 +66,24 @@ public class GameScreen
         }
     };
 
+    /** Callback interface for game events. */
+    private GameManager.GameCallback mGameCallback = new GameManager.GameCallback() {
+        @Override
+        public void startGame() {
+            setState(GameState.GamePlaying);
+        }
+
+        @Override
+        public void pauseGame() {
+            setState(GameState.GamePaused);
+        }
+
+        @Override
+        public void endGame() {
+            setState(GameState.Ended);
+        }
+    };
+
     @Override
     public void render(float delta) {
         mPrimaryCamera.update();
@@ -99,7 +117,7 @@ public class GameScreen
         Gdx.input.setInputProcessor(mGameInput);
 
         // Setting up the game and menu
-        mGameManager = new GameManager(mAssetManager, mScreenWidth, mScreenHeight);
+        mGameManager = new GameManager(mGameCallback, mAssetManager, mScreenWidth, mScreenHeight);
         mMenuManager = new MenuManager(mMenuCallback, mAssetManager, mScreenWidth, mScreenHeight);
 
         // Displaying the main menu
@@ -132,8 +150,17 @@ public class GameScreen
 
     @Override
     public void dispose() {
+        // Disposes resources being used by instances
         mSpriteBatch.dispose();
         mAssetManager.dispose();
+        mGameManager.dispose();
+        mMenuManager.dispose();
+
+        // Removes references
+        mSpriteBatch = null;
+        mAssetManager = null;
+        mGameManager = null;
+        mMenuManager = null;
     }
 
     /**
@@ -159,13 +186,6 @@ public class GameScreen
                 break;
             default:
                 throw new IllegalStateException("invalid game state.");
-        }
-
-        if (mGameManager.shouldStartGame()) {
-            mGameManager.startGame();
-            setState(GameState.GamePlaying);
-        } else if (mGameManager.isGameOver()) {
-            setState(GameState.Ended);
         }
 
         // Clear up input
