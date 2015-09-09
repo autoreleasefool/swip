@@ -1,6 +1,6 @@
 package ca.josephroque.swip.entity;
 
-import ca.josephroque.swip.game.GameTexture;
+import ca.josephroque.swip.manager.AssetManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -27,28 +27,31 @@ public abstract class BasicBall
 
     /** Scale for the ball radius, where {@code 1 = sMaximumBallRadius}. */
     private float mScale;
-    /** Time in milliseconds that this object was created at. */
-    private long mTimeCreated;
+    /** Time in milliseconds that this object began scaling. */
+    private long mScaleStartTime;
+    /** {@code True} if the ball should be growing if it is scaling, {@code false} if it should be shrinking. */
+    private boolean mGrowingOrShrinking;
     /** Color of the ball. */
-    private final GameTexture.GameColor mBallColor;
+    private final AssetManager.GameColor mBallColor;
 
     /** Circle which defines the ball's positioning. */
     private Circle mBoundingCircle;
 
     /**
-     * Prepares a new {@code BasicBall} instance.
+     * Prepares a new {@code BasicBall} instance. New balls will begin to grow when they are created.
      *
      * @param color color of the ball
      * @param x horizontal position of the ball
      * @param y vertical position of the ball
      */
-    public BasicBall(GameTexture.GameColor color, float x, float y) {
+    public BasicBall(AssetManager.GameColor color, float x, float y) {
         if (!sBallsInitialized)
             throw new IllegalStateException("Must call initialize before creating any instances");
 
-        mTimeCreated = TimeUtils.millis();
         mBallColor = color;
         mBoundingCircle = new Circle(x, y, 0);
+        mScaleStartTime = TimeUtils.millis();
+        mGrowingOrShrinking = true;
     }
 
     /**
@@ -75,10 +78,10 @@ public abstract class BasicBall
      * Draws the ball to the screen.
      *
      * @param spriteBatch graphics context to draw to
-     * @param gameTexture textures for game objects
+     * @param assetManager textures for game objects
      */
-    public void draw(SpriteBatch spriteBatch, GameTexture gameTexture) {
-        spriteBatch.draw(gameTexture.getBallTexture(mBallColor),
+    public void draw(SpriteBatch spriteBatch, AssetManager assetManager) {
+        spriteBatch.draw(assetManager.getBallTexture(mBallColor),
                 getX() - getRadius(),
                 getY() - getRadius(),
                 getWidth(),
@@ -89,20 +92,43 @@ public abstract class BasicBall
      * Sets the size of the ball depending on how long it has been on screen.
      */
     private void scale() {
-        final long timeSinceCreated = TimeUtils.timeSinceMillis(mTimeCreated);
-        if (timeSinceCreated < BALL_SCALE_TIME)
-            mScale = Math.min(1f, Math.max(0f, timeSinceCreated / BALL_SCALE_TIME));
+        final long timeSinceScaleBegan = TimeUtils.timeSinceMillis(mScaleStartTime);
+        if (timeSinceScaleBegan < BALL_SCALE_TIME)
+            mScale = (mGrowingOrShrinking)
+                    ? Math.min(1f, Math.max(0f, timeSinceScaleBegan / BALL_SCALE_TIME))
+                    : Math.max(0f, Math.min(1f, (-timeSinceScaleBegan + BALL_SCALE_TIME) / BALL_SCALE_TIME));
         else
-            mScale = 1f;
+            mScale = (mGrowingOrShrinking)
+                    ? 1f
+                    : 0f;
 
         mBoundingCircle.setRadius(sDefaultBallRadius * mScale);
     }
 
     /**
-     * Causes the ball to shrink.
+     * Causes the ball to shrink to a scale of 0.0.
      */
     public void shrink() {
+        mScaleStartTime = TimeUtils.millis();
+        mGrowingOrShrinking = false;
+    }
 
+    /**
+     * Causes the ball to grow to its default scale (1.0).
+     */
+    public void grow() {
+        mScaleStartTime = TimeUtils.millis();
+        mGrowingOrShrinking = true;
+    }
+
+    /**
+     * Checks if the ball is currently scaling.
+     *
+     * @return {@code true} if {@code BALL_SCALE_TIME} has not passed since the ball was created, or since {@code
+     * grow()} or {@code shrink()} was invoked.
+     */
+    public boolean isScaling() {
+        return TimeUtils.timeSinceMillis(mScaleStartTime) < BALL_SCALE_TIME;
     }
 
     /**
@@ -143,6 +169,17 @@ public abstract class BasicBall
     public void updatePosition(float delta) {
         mBoundingCircle.x += getXVelocity() * delta;
         mBoundingCircle.y += getYVelocity() * delta;
+    }
+
+    /**
+     * Gets the default radius for balls. Throws an exception if {@code initialize()} has not been called.
+     *
+     * @return default ball radius.
+     */
+    public static float getDefaultBallRadius() {
+        if (!sBallsInitialized)
+            throw new IllegalStateException("Must call initialize before default size can be determined");
+        return sDefaultBallRadius;
     }
 
     /**

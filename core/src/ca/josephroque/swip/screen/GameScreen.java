@@ -1,7 +1,7 @@
 package ca.josephroque.swip.screen;
 
 import ca.josephroque.swip.manager.GameManager;
-import ca.josephroque.swip.game.GameTexture;
+import ca.josephroque.swip.manager.AssetManager;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.manager.MenuManager;
 import com.badlogic.gdx.Gdx;
@@ -31,8 +31,6 @@ public class GameScreen
 
     /** Handles gesture input events. */
     private GameInputProcessor mGameInput;
-    /** Manages textures for game objects. */
-    private GameTexture mGameTextures;
 
     /** Width of the screen. */
     private int mScreenWidth;
@@ -46,6 +44,27 @@ public class GameScreen
     private GameManager mGameManager;
     /** Handles main menu events and rendering. */
     private MenuManager mMenuManager;
+    /** Manages textures for game objects. */
+    private AssetManager mAssetManager;
+
+    /** Callback interface for main menu events. */
+    private MenuManager.MenuCallback mMenuCallback = new MenuManager.MenuCallback() {
+        @Override
+        public void setMusicEnabled(boolean enabled) {
+            // TODO: enable or disable music
+        }
+
+        @Override
+        public void setSoundEffectsEnabled(boolean enabled) {
+            // TODO: enable or disable sound effects
+        }
+
+        @Override
+        public void startGame() {
+            if (mGameManager != null)
+                mGameManager.startGame();
+        }
+    };
 
     @Override
     public void render(float delta) {
@@ -72,15 +91,16 @@ public class GameScreen
 
         // Preparing UI objects
         mSpriteBatch = new SpriteBatch();
-        mGameTextures = new GameTexture();
+        mAssetManager = new AssetManager();
+        mAssetManager.initialize();
 
         // Creating gesture handler
         mGameInput = new GameInputProcessor();
         Gdx.input.setInputProcessor(mGameInput);
 
         // Setting up the game and menu
-        mGameManager = new GameManager(mGameTextures, mScreenWidth, mScreenHeight);
-        mMenuManager = new MenuManager(mGameTextures, mScreenWidth, mScreenHeight);
+        mGameManager = new GameManager(mAssetManager, mScreenWidth, mScreenHeight);
+        mMenuManager = new MenuManager(mMenuCallback, mAssetManager, mScreenWidth, mScreenHeight);
 
         // Displaying the main menu
         setState(GameState.MainMenu);
@@ -113,7 +133,7 @@ public class GameScreen
     @Override
     public void dispose() {
         mSpriteBatch.dispose();
-        mGameTextures.dispose();
+        mAssetManager.dispose();
     }
 
     /**
@@ -124,7 +144,7 @@ public class GameScreen
     private void tick(float delta) {
         switch (mGameState) {
             case MainMenu:
-                tickMainMenu(delta);
+                mMenuManager.tick(mGameState, mGameInput, delta);
                 break;
             case GameStarting:
             case GamePlaying:
@@ -132,7 +152,10 @@ public class GameScreen
                 mGameManager.tick(mGameState, mGameInput, delta);
                 break;
             case Ended:
-                tickGameEnded(delta);
+                if (Gdx.input.justTouched()) {
+                    mGameManager.prepareNewGame();
+                    setState(GameState.GameStarting);
+                }
                 break;
             default:
                 throw new IllegalStateException("invalid game state.");
@@ -160,58 +183,19 @@ public class GameScreen
 
         switch (mGameState) {
             case MainMenu:
-                drawMainMenu();
+                mMenuManager.draw(mGameState, mSpriteBatch);
                 break;
             case GameStarting:
             case GamePlaying:
             case GamePaused:
                 break;
             case Ended:
-                drawEndScreen();
                 break;
             default:
                 throw new IllegalStateException("invalid game state.");
         }
 
         mSpriteBatch.begin();
-    }
-
-    /**
-     * Update the main menu.
-     *
-     * @param delta number of seconds the last rendering took
-     */
-    private void tickMainMenu(float delta) {
-        if (Gdx.input.justTouched()) {
-            mGameManager.prepareNewGame();
-            setState(GameState.GameStarting);
-        }
-    }
-
-    /**
-     * Update the end screen.
-     *
-     * @param delta number of seconds the last rendering took
-     */
-    private void tickGameEnded(float delta) {
-        if (Gdx.input.justTouched()) {
-            mGameManager.prepareNewGame();
-            setState(GameState.GameStarting);
-        }
-    }
-
-    /**
-     * Draws the main menu.
-     */
-    private void drawMainMenu() {
-
-    }
-
-    /**
-     * Draws the end screen.
-     */
-    private void drawEndScreen() {
-
     }
 
     /**

@@ -1,6 +1,6 @@
 package ca.josephroque.swip.entity;
 
-import ca.josephroque.swip.game.GameTexture;
+import ca.josephroque.swip.manager.AssetManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -43,12 +43,12 @@ public class Wall
     /** The chance that two walls will be given the same color in a turn. */
     public static final float CHANCE_OF_SAME_WALL_COLOR = 0.2f;
     /** List of the current active colors. */
-    private static List<GameTexture.GameColor> sListActiveColors = new ArrayList<>(GameTexture.NUMBER_OF_COLORS);
+    private static List<AssetManager.GameColor> sListActiveColors = new ArrayList<>(AssetManager.NUMBER_OF_COLORS);
 
     /** The side of the screen which this wall represents. */
     private final Side mWallSide;
     /** Color of the wall. */
-    private GameTexture.GameColor mWallColor;
+    private AssetManager.GameColor mWallColor;
 
     /** Rectangle which defines the bounds of the wall. */
     private Rectangle mBoundingBox;
@@ -62,7 +62,7 @@ public class Wall
      * @param screenHeight height of the screen
      */
     public Wall(int wallSide,
-                GameTexture.GameColor wallColor,
+                AssetManager.GameColor wallColor,
                 int screenWidth,
                 int screenHeight) {
         this(POSSIBLE_SIDES[wallSide], wallColor, screenWidth, screenHeight);
@@ -77,7 +77,7 @@ public class Wall
      * @param screenHeight height of the screen
      */
     public Wall(Side wallSide,
-                GameTexture.GameColor wallColor,
+                AssetManager.GameColor wallColor,
                 int screenWidth,
                 int screenHeight) {
         if (!sWallsInitialized)
@@ -125,9 +125,9 @@ public class Wall
      * Draws the wall to the screen.
      *
      * @param spriteBatch graphics context to draw to
-     * @param gameTexture textures of game objects
+     * @param assetManager textures of game objects
      */
-    public void draw(SpriteBatch spriteBatch, GameTexture gameTexture) {
+    public void draw(SpriteBatch spriteBatch, AssetManager assetManager) {
         if (mWallSide.ordinal() != sLastWallDrawn + 1)
             throw new IllegalStateException("must draw walls in the natural order determined by Wall.Side");
 
@@ -137,20 +137,20 @@ public class Wall
             sLastWallDrawn = mWallSide.ordinal();
 
         if (mWallSide == Side.Top || mWallSide == Side.Bottom)
-            drawHorizontalWall(spriteBatch, gameTexture);
+            drawHorizontalWall(spriteBatch, assetManager);
         else
-            drawVerticalWall(spriteBatch, gameTexture);
+            drawVerticalWall(spriteBatch, assetManager);
     }
 
     /**
      * Draws a horizontal wall to the screen.
      *
      * @param spriteBatch graphics context to draw to
-     * @param gameTexture textures of game objects
+     * @param assetManager textures of game objects
      */
-    private void drawHorizontalWall(SpriteBatch spriteBatch, GameTexture gameTexture) {
+    private void drawHorizontalWall(SpriteBatch spriteBatch, AssetManager assetManager) {
         final float rotation = -90;
-        spriteBatch.draw(gameTexture.getWallTexture(mWallSide, mWallColor),
+        spriteBatch.draw(assetManager.getWallTexture(mWallSide, mWallColor),
                 getX() + sDefaultWallSize,
                 getY() + sDefaultWallSize,
                 0,
@@ -160,7 +160,7 @@ public class Wall
                 1,
                 1,
                 rotation);
-        spriteBatch.draw(gameTexture.getWallEdge(mWallSide, mWallColor, true),
+        spriteBatch.draw(assetManager.getWallEdge(mWallSide, mWallColor, true),
                 getX() + getWidth() - sDefaultWallSize,
                 getY() + sDefaultWallSize,
                 0,
@@ -170,7 +170,7 @@ public class Wall
                 1,
                 1,
                 rotation);
-        spriteBatch.draw(gameTexture.getWallEdge(mWallSide, mWallColor, false),
+        spriteBatch.draw(assetManager.getWallEdge(mWallSide, mWallColor, false),
                 getX(),
                 getY() + sDefaultWallSize,
                 0,
@@ -186,20 +186,20 @@ public class Wall
      * Draws a vertical wall to the screen.
      *
      * @param spriteBatch graphics context to draw to
-     * @param gameTexture textures of game objects
+     * @param assetManager textures of game objects
      */
-    private void drawVerticalWall(SpriteBatch spriteBatch, GameTexture gameTexture) {
-        spriteBatch.draw(gameTexture.getWallTexture(mWallSide, mWallColor),
+    private void drawVerticalWall(SpriteBatch spriteBatch, AssetManager assetManager) {
+        spriteBatch.draw(assetManager.getWallTexture(mWallSide, mWallColor),
                 getX(),
                 getY() + sDefaultWallSize,
                 getWidth(),
                 getHeight() - sDefaultWallSize * 2);
-        spriteBatch.draw(gameTexture.getWallEdge(mWallSide, mWallColor, true),
+        spriteBatch.draw(assetManager.getWallEdge(mWallSide, mWallColor, true),
                 getX(),
                 getY() + getHeight() - sDefaultWallSize,
                 sDefaultWallSize,
                 sDefaultWallSize);
-        spriteBatch.draw(gameTexture.getWallEdge(mWallSide, mWallColor, false),
+        spriteBatch.draw(assetManager.getWallEdge(mWallSide, mWallColor, false),
                 getX(),
                 getY(),
                 sDefaultWallSize,
@@ -216,7 +216,7 @@ public class Wall
      *
      * @param wallColor new color
      */
-    public void updateWallColor(GameTexture.GameColor wallColor) {
+    public void updateWallColor(AssetManager.GameColor wallColor) {
         mWallColor = wallColor;
     }
 
@@ -238,7 +238,7 @@ public class Wall
      */
     public static void initialize(int screenWidth, int screenHeight) {
         sListActiveColors.clear();
-        sListActiveColors.addAll(Arrays.asList(GameTexture.GAME_COLORS).subList(0, NUMBER_OF_WALLS));
+        sListActiveColors.addAll(Arrays.asList(AssetManager.GAME_COLORS).subList(0, NUMBER_OF_WALLS));
 
         sLastWallDrawn = -1;
         sDefaultWallSize = Math.min(screenWidth, screenHeight) * WALL_SIZE_MULTIPLIER;
@@ -252,8 +252,8 @@ public class Wall
         if (!sWallsInitialized)
             throw new IllegalStateException("Must initialize walls.");
 
-        if (sListActiveColors.size() < GameTexture.NUMBER_OF_COLORS)
-            sListActiveColors.add(GameTexture.GAME_COLORS[sListActiveColors.size()]);
+        if (sListActiveColors.size() < AssetManager.NUMBER_OF_COLORS)
+            sListActiveColors.add(AssetManager.GAME_COLORS[sListActiveColors.size()]);
     }
 
     /**
@@ -267,7 +267,7 @@ public class Wall
      * @return if there are two walls the same color, then the value returned is the index of the first of the pair. If
      * there are no two walls the same, this method returns -1
      */
-    public static int getRandomWallColors(Random random, GameTexture.GameColor[] wallColors, boolean allowSame) {
+    public static int getRandomWallColors(Random random, AssetManager.GameColor[] wallColors, boolean allowSame) {
         if (!sWallsInitialized)
             throw new IllegalStateException("Must initialize walls.");
         if (wallColors.length != NUMBER_OF_WALLS)

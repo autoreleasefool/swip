@@ -3,11 +3,8 @@ package ca.josephroque.swip.manager;
 import ca.josephroque.swip.entity.BasicBall;
 import ca.josephroque.swip.entity.GameBall;
 import ca.josephroque.swip.entity.Wall;
-import ca.josephroque.swip.game.GameTexture;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.TimeUtils;
 
@@ -42,7 +39,7 @@ public class GameManager {
     private final Random mRandomNumberGenerator = new Random();
 
     /** Manages textures for game objects. */
-    private GameTexture mGameTextures;
+    private AssetManager mGameTextures;
 
     /** Time at which the game began, in milliseconds. */
     private long mGameStartTime;
@@ -56,7 +53,7 @@ public class GameManager {
     /** The four walls in the game. */
     private final Wall[] mWalls;
     /** Colors of the four walls. */
-    private final GameTexture.GameColor[] mWallColors;
+    private final AssetManager.GameColor[] mWallColors;
 
     /** Time that the current turn started at. */
     private long mStartOfTurn;
@@ -70,17 +67,17 @@ public class GameManager {
     /**
      * Sets up a new game manager.
      *
-     * @param gameTexture textures for game objects
+     * @param assetManager textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
-    public GameManager(GameTexture gameTexture, int screenWidth, int screenHeight) {
+    public GameManager(AssetManager assetManager, int screenWidth, int screenHeight) {
         mScreenWidth = screenWidth;
         mScreenHeight = screenHeight;
-        mGameTextures = gameTexture;
+        mGameTextures = assetManager;
 
         Wall.initialize(screenWidth, screenHeight);
-        mWallColors = new GameTexture.GameColor[Wall.NUMBER_OF_WALLS];
+        mWallColors = new AssetManager.GameColor[Wall.NUMBER_OF_WALLS];
         Wall.getRandomWallColors(mRandomNumberGenerator, mWallColors, false);
         mWalls = new Wall[Wall.NUMBER_OF_WALLS];
         for (int i = 0; i < mWalls.length; i++) {

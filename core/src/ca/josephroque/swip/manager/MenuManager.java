@@ -1,15 +1,11 @@
 package ca.josephroque.swip.manager;
 
+import ca.josephroque.swip.entity.BasicBall;
 import ca.josephroque.swip.entity.ButtonBall;
-import ca.josephroque.swip.entity.Wall;
-import ca.josephroque.swip.game.GameTexture;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
-import java.util.Random;
 
 /**
  * Manages menu objects and rendering them to the screen.
@@ -20,16 +16,11 @@ public class MenuManager {
     @SuppressWarnings("unused")
     private static final String TAG = "MenuManager";
 
-    /** Width of the screen. */
-    private int mScreenWidth;
-    /** Height of the screen. */
-    private int mScreenHeight;
-
-    /** Generates random numbers for the game. */
-    private final Random mRandomNumberGenerator = new Random();
+    /** Instance of callback interface. */
+    private MenuCallback mCallback;
 
     /** Manages textures for game objects. */
-    private GameTexture mGameTextures;
+    private AssetManager mGameTextures;
 
     /** Buttons for menu options. */
     private ButtonBall[] mMenuOptionBalls;
@@ -37,24 +28,40 @@ public class MenuManager {
     /**
      * Sets up a new main menu.
      *
-     * @param gameTexture textures for game objects
+     * @param callback instance of callback interface
+     * @param assetManager textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
-    public MenuManager(GameTexture gameTexture, int screenWidth, int screenHeight) {
-        mGameTextures = gameTexture;
-        mScreenWidth = screenWidth;
-        mScreenHeight = screenHeight;
+    public MenuManager(MenuCallback callback, AssetManager assetManager, int screenWidth, int screenHeight) {
+        mCallback = callback;
+        mGameTextures = assetManager;
 
-        mMenuOptionBalls = new ButtonBall[2];
-        mMenuOptionBalls[MenuBallOptions.Music.ordinal()]
-                = new ButtonBall(MenuBallOptions.Music,
-                GameTexture.GameColor.Red,
-                mGameTextures.getButtonTexture(MenuBallOptions.Music, ))
-        mMenuOptionBalls[MenuBallOptions.SoundEffects.ordinal()]
-                = new ButtonBall(MenuBallOptions.SoundEffects,
-                GameTexture.GameColor.Red,
-                mGameTextures.getButtonTexture(MenuBallOptions.SoundEffects, ))
+        mMenuOptionBalls = new ButtonBall[MenuBallOptions.getSize()];
+        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()]
+                = new ButtonBall(MenuBallOptions.MusicOn,
+                AssetManager.GameColor.Green,
+                mGameTextures.getMenuButtonIconTexture(MenuBallOptions.MusicOn),
+                screenWidth / 2 - BasicBall.getDefaultBallRadius() * 2,
+                screenHeight / 2);
+        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()]
+                = new ButtonBall(MenuBallOptions.MusicOff,
+                AssetManager.GameColor.Red,
+                mGameTextures.getMenuButtonIconTexture(MenuBallOptions.MusicOff),
+                screenWidth / 2 - BasicBall.getDefaultBallRadius() * 2,
+                screenHeight / 2);
+        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()]
+                = new ButtonBall(MenuBallOptions.SoundEffectsOn,
+                AssetManager.GameColor.Green,
+                mGameTextures.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOn),
+                screenWidth / 2 + BasicBall.getDefaultBallRadius() * 2,
+                screenHeight / 2);
+        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()]
+                = new ButtonBall(MenuBallOptions.SoundEffectsOff,
+                AssetManager.GameColor.Red,
+                mGameTextures.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOff),
+                screenWidth / 2 + BasicBall.getDefaultBallRadius() * 2,
+                screenHeight / 2);
     }
 
     /**
@@ -65,17 +72,53 @@ public class MenuManager {
      * @param delta number of seconds the last rendering took
      */
     public void tick(GameScreen.GameState gameState, GameInputProcessor gameInput, float delta) {
+        if (gameState != GameScreen.GameState.MainMenu)
+            throw new IllegalStateException("Invalid state for updating menu.");
+
+        boolean optionSelected = false;
         for (ButtonBall option : mMenuOptionBalls) {
+            option.tick(delta);
+
             if (option.wasClicked(gameInput)) {
+                optionSelected = true;
                 switch (option.getMenuOption()) {
-                    case Music:
+                    case MusicOn:
+                        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].shrink();
+                        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].grow();
+                        if (mCallback != null)
+                            mCallback.setMusicEnabled(false);
                         break;
-                    case SoundEffects:
+                    case MusicOff:
+                        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].grow();
+                        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].shrink();
+                        if (mCallback != null)
+                            mCallback.setMusicEnabled(true);
+                        break;
+                    case SoundEffectsOn:
+                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].shrink();
+                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].grow();
+                        if (mCallback != null)
+                            mCallback.setSoundEffectsEnabled(false);
+                        break;
+                    case SoundEffectsOff:
+                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].grow();
+                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].shrink();
+                        if (mCallback != null)
+                            mCallback.setSoundEffectsEnabled(true);
                         break;
                     default:
                         throw new IllegalArgumentException("menu option not valid.");
                 }
+
+                // Only one option can be selected, so the loop exits
+                break;
             }
+        }
+
+        if (!optionSelected) {
+            // Starts the game if no other option was selected
+            if (Gdx.input.justTouched() && mCallback != null)
+                mCallback.startGame();
         }
     }
 
@@ -95,9 +138,52 @@ public class MenuManager {
      * Available options for the ball menu items.
      */
     public enum MenuBallOptions {
-        /** Represents the menu option for enabling or disabling music. */
-        Music,
-        /** Represents the menu option for enabling or disabling sound effects. */
-        SoundEffects,
+        /** Represents the menu option for when music is enabled. */
+        MusicOn,
+        /** Represents the menu option for when music is disabled. */
+        MusicOff,
+        /** Represents the menu option for when sound effects are enabled. */
+        SoundEffectsOn,
+        /** Represents the menu option for when sound effects are disabled. */
+        SoundEffectsOff;
+
+        /** Size of the enum. */
+        private static final int SIZE = MenuBallOptions.values().length;
+
+        /**
+         * Gets the size of the enum.
+         *
+         * @return number of {@code MenuBallOptions}
+         */
+        public static int getSize() {
+            return SIZE;
+        }
     }
+
+    /**
+     * Provides callback methods for menu interactions.
+     */
+    public interface MenuCallback {
+
+        /**
+         * Should enable or disable the music of the game.
+         *
+         * @param enabled {@code true} if the music has been enabled through the menu, {@code false} if disabled
+         */
+        void setMusicEnabled(boolean enabled);
+
+        /**
+         * Should enable or disable the sound effects of the game.
+         *
+         * @param enabled {@code true} if the sound effects have  been enabled through the menu, {@code false} if
+         * disabled
+         */
+        void setSoundEffectsEnabled(boolean enabled);
+
+        /**
+         * Should start a new game.
+         */
+        void startGame();
+    }
+
 }

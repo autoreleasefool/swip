@@ -1,6 +1,6 @@
 package ca.josephroque.swip.entity;
 
-import ca.josephroque.swip.game.GameTexture;
+import ca.josephroque.swip.manager.AssetManager;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.manager.MenuManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -30,9 +30,14 @@ public class ButtonBall
      * @param x starting horizontal position of the ball
      * @param y starting vertical position of the ball
      */
-    public ButtonBall(MenuManager.MenuBallOptions option, GameTexture.GameColor ballColor, TextureRegion buttonIcon, float x, float y) {
+    public ButtonBall(MenuManager.MenuBallOptions option,
+                      AssetManager.GameColor ballColor,
+                      TextureRegion buttonIcon,
+                      float x,
+                      float y) {
         super(ballColor, x, y);
         mMenuOption = option;
+        mButtonIcon = buttonIcon;
     }
 
     /**
@@ -42,7 +47,7 @@ public class ButtonBall
      * @return {@code true} if the user clicked within the bounds of the button.
      */
     public boolean wasClicked(GameInputProcessor gameInput) {
-        return gameInput.wasFingerJustReleased() && getBounds().contains(gameInput.getLastFingerX(),
+        return !isScaling() && gameInput.wasFingerJustReleased() && getBounds().contains(gameInput.getLastFingerX(),
                 gameInput.getLastFingerY());
     }
 
@@ -50,10 +55,10 @@ public class ButtonBall
      * Draws the ball and its icon to the screen.
      *
      * @param spriteBatch graphics context to draw to
-     * @param gameTexture textures for game objects
+     * @param assetManager textures for game objects
      */
-    public void draw(SpriteBatch spriteBatch, GameTexture gameTexture) {
-        super.draw(spriteBatch, gameTexture);
+    public void draw(SpriteBatch spriteBatch, AssetManager assetManager) {
+        super.draw(spriteBatch, assetManager);
 
         if (mButtonIcon != null)
             drawIcon(spriteBatch);

@@ -1,6 +1,6 @@
 package ca.josephroque.swip.entity;
 
-import ca.josephroque.swip.game.GameTexture;
+import ca.josephroque.swip.manager.AssetManager;
 import ca.josephroque.swip.input.GameInputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -43,7 +43,7 @@ public class GameBall
      * @param x starting horizontal position of the ball
      * @param y starting vertical position of the ball
      */
-    public GameBall(GameTexture.GameColor ballColor, boolean[] passableWalls, float x, float y) {
+    public GameBall(AssetManager.GameColor ballColor, boolean[] passableWalls, float x, float y) {
         super(ballColor, x, y);
         mPassableWalls = passableWalls;
     }
@@ -148,12 +148,12 @@ public class GameBall
      * turn.
      *
      * @param spriteBatch graphics context to draw to
-     * @param gameTexture textures for game objects
+     * @param assetManager textures for game objects
      * @param maxTurnLength total number of milliseconds the current turn will take
      * @param currentTurnLength duration of the current turn
      */
-    public void draw(SpriteBatch spriteBatch, GameTexture gameTexture, int maxTurnLength, int currentTurnLength) {
-        super.draw(spriteBatch, gameTexture);
+    public void draw(SpriteBatch spriteBatch, AssetManager assetManager, int maxTurnLength, int currentTurnLength) {
+        super.draw(spriteBatch, assetManager);
     }
 
     /**
