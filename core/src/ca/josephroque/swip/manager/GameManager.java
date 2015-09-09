@@ -1,8 +1,9 @@
-package ca.josephroque.swip.game;
+package ca.josephroque.swip.manager;
 
 import ca.josephroque.swip.entity.BasicBall;
 import ca.josephroque.swip.entity.GameBall;
 import ca.josephroque.swip.entity.Wall;
+import ca.josephroque.swip.game.GameTexture;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
 import com.badlogic.gdx.Gdx;
@@ -162,18 +163,12 @@ public class GameManager {
      *
      * @param gameState the current state of the application
      * @param spriteBatch graphics context to draw to
-     * @param gameTexture textures for game objects
      */
-    public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch, GameTexture gameTexture) {
-        spriteBatch.begin();
-
+    public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         if (mCurrentGameBall != null)
-            mCurrentGameBall.draw(spriteBatch, gameTexture, mTurnLength, mCurrentTurnDuration);
+            mCurrentGameBall.draw(spriteBatch, mGameTextures, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
             wall.draw(spriteBatch, mGameTextures);
-
-        spriteBatch.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     /**

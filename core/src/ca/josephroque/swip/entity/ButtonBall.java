@@ -2,6 +2,7 @@ package ca.josephroque.swip.entity;
 
 import ca.josephroque.swip.game.GameTexture;
 import ca.josephroque.swip.input.GameInputProcessor;
+import ca.josephroque.swip.manager.MenuManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
@@ -15,19 +16,23 @@ public class ButtonBall
     @SuppressWarnings("unused")
     private static final String TAG = "ButtonBall";
 
+    /** Menu action which clicking this ball invokes. */
+    private MenuManager.MenuBallOptions mMenuOption;
     /** Icon of the button. */
     private TextureRegion mButtonIcon;
 
     /**
      * Prepares a new ball object.
      *
+     * @param option menu item the ball represents
      * @param ballColor color of the ball
      * @param buttonIcon icon for the button
      * @param x starting horizontal position of the ball
      * @param y starting vertical position of the ball
      */
-    public ButtonBall(GameTexture.GameColor ballColor, TextureRegion buttonIcon, float x, float y) {
+    public ButtonBall(MenuManager.MenuBallOptions option, GameTexture.GameColor ballColor, TextureRegion buttonIcon, float x, float y) {
         super(ballColor, x, y);
+        mMenuOption = option;
     }
 
     /**
@@ -61,5 +66,14 @@ public class ButtonBall
      */
     private void drawIcon(SpriteBatch spriteBatch) {
         spriteBatch.draw(mButtonIcon, getX() - getRadius(), getY() - getRadius(), getWidth(), getHeight());
+    }
+
+    /**
+     * Gets the option that clicking this ball invokes.
+     *
+     * @return menu option
+     */
+    public MenuManager.MenuBallOptions getMenuOption() {
+        return mMenuOption;
     }
 }

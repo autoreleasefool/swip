@@ -1,8 +1,9 @@
 package ca.josephroque.swip.screen;
 
-import ca.josephroque.swip.game.GameManager;
+import ca.josephroque.swip.manager.GameManager;
 import ca.josephroque.swip.game.GameTexture;
 import ca.josephroque.swip.input.GameInputProcessor;
+import ca.josephroque.swip.manager.MenuManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -43,6 +44,8 @@ public class GameScreen
 
     /** Handles game logic and rendering. */
     private GameManager mGameManager;
+    /** Handles main menu events and rendering. */
+    private MenuManager mMenuManager;
 
     @Override
     public void render(float delta) {
@@ -75,8 +78,9 @@ public class GameScreen
         mGameInput = new GameInputProcessor();
         Gdx.input.setInputProcessor(mGameInput);
 
-        // Setting up the game
+        // Setting up the game and menu
         mGameManager = new GameManager(mGameTextures, mScreenWidth, mScreenHeight);
+        mMenuManager = new MenuManager(mGameTextures, mScreenWidth, mScreenHeight);
 
         // Displaying the main menu
         setState(GameState.MainMenu);
@@ -150,8 +154,9 @@ public class GameScreen
      */
     private void draw() {
         mSpriteBatch.setProjectionMatrix(mPrimaryCamera.combined);
+        mSpriteBatch.begin();
 
-        mGameManager.draw(mGameState, mSpriteBatch, mGameTextures);
+        mGameManager.draw(mGameState, mSpriteBatch);
 
         switch (mGameState) {
             case MainMenu:
@@ -167,6 +172,8 @@ public class GameScreen
             default:
                 throw new IllegalStateException("invalid game state.");
         }
+
+        mSpriteBatch.begin();
     }
 
     /**
