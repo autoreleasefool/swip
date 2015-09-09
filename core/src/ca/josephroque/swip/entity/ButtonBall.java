@@ -47,7 +47,7 @@ public class ButtonBall
      * @return {@code true} if the user clicked within the bounds of the button.
      */
     public boolean wasClicked(GameInputProcessor gameInput) {
-        return !isScaling() && gameInput.wasFingerJustReleased() && getBounds().contains(gameInput.getLastFingerX(),
+        return gameInput.wasFingerJustReleased() && getBounds().contains(gameInput.getLastFingerX(),
                 gameInput.getLastFingerY());
     }
 

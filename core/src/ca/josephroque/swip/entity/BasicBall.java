@@ -106,19 +106,33 @@ public abstract class BasicBall
     }
 
     /**
-     * Causes the ball to shrink to a scale of 0.0.
+     * Causes the ball to shrink to a scale of 0.0. If the ball is currently growing, it begins to shrink. If the ball
+     * is already shrinking, this method does nothing.
      */
     public void shrink() {
-        mScaleStartTime = TimeUtils.millis();
-        mGrowingOrShrinking = false;
+        if (mGrowingOrShrinking) {
+            final long timeSinceScaleBegan = TimeUtils.timeSinceMillis(mScaleStartTime);
+            if (timeSinceScaleBegan < BALL_SCALE_TIME)
+                mScaleStartTime = TimeUtils.millis() - (-timeSinceScaleBegan + (long) BALL_SCALE_TIME);
+            else
+                mScaleStartTime = TimeUtils.millis();
+            mGrowingOrShrinking = false;
+        }
     }
 
     /**
-     * Causes the ball to grow to its default scale (1.0).
+     * Causes the ball to grow to its default scale (1.0). If the ball is currently shrinking, it begins to grow. If the
+     * ball is already growing, this method does nothing.
      */
     public void grow() {
-        mScaleStartTime = TimeUtils.millis();
-        mGrowingOrShrinking = true;
+        if (!mGrowingOrShrinking) {
+            final long timeSinceScaleBegan = TimeUtils.timeSinceMillis(mScaleStartTime);
+            if (timeSinceScaleBegan < BALL_SCALE_TIME)
+                mScaleStartTime = TimeUtils.millis() - (-timeSinceScaleBegan + (long) BALL_SCALE_TIME);
+            else
+                mScaleStartTime = TimeUtils.millis();
+            mGrowingOrShrinking = true;
+        }
     }
 
     /**
