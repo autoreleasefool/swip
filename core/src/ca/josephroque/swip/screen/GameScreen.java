@@ -1,7 +1,7 @@
 package ca.josephroque.swip.screen;
 
 import ca.josephroque.swip.manager.GameManager;
-import ca.josephroque.swip.manager.AssetManager;
+import ca.josephroque.swip.manager.TextureManager;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.manager.MenuManager;
 import com.badlogic.gdx.Gdx;
@@ -46,8 +46,6 @@ public class GameScreen
     private GameManager mGameManager;
     /** Handles main menu events and rendering. */
     private MenuManager mMenuManager;
-    /** Manages textures for game objects. */
-    private AssetManager mAssetManager;
 
     /** Callback interface for main menu events. */
     private MenuManager.MenuCallback mMenuCallback = new MenuManager.MenuCallback() {
@@ -116,16 +114,15 @@ public class GameScreen
 
         // Preparing UI objects
         mSpriteBatch = new SpriteBatch();
-        mAssetManager = new AssetManager();
-        mAssetManager.initialize();
+        TextureManager.initialize();
 
         // Creating gesture handler
         mGameInput = new GameInputProcessor();
         Gdx.input.setInputProcessor(mGameInput);
 
         // Setting up the game and menu
-        mGameManager = new GameManager(mGameCallback, mAssetManager, mScreenWidth, mScreenHeight);
-        mMenuManager = new MenuManager(mMenuCallback, mAssetManager, mScreenWidth, mScreenHeight);
+        mGameManager = new GameManager(mGameCallback, mScreenWidth, mScreenHeight);
+        mMenuManager = new MenuManager(mMenuCallback, mScreenWidth, mScreenHeight);
 
         // Displaying the main menu
         setState(GameState.MainMenu);
@@ -159,13 +156,12 @@ public class GameScreen
     public void dispose() {
         // Disposes resources being used by instances
         mSpriteBatch.dispose();
-        mAssetManager.dispose();
+        TextureManager.dispose();
         mGameManager.dispose();
         mMenuManager.dispose();
 
         // Removes references
         mSpriteBatch = null;
-        mAssetManager = null;
         mGameManager = null;
         mMenuManager = null;
     }

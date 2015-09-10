@@ -42,8 +42,6 @@ public class GameManager {
     /** Generates random numbers for the game. */
     private final Random mRandomNumberGenerator = new Random();
 
-    /** Manages textures for game objects. */
-    private AssetManager mAssetManager;
     /** Instance of callback interface. */
     private GameCallback mGameCallback;
 
@@ -57,7 +55,7 @@ public class GameManager {
     /** The four walls in the game. */
     private final Wall[] mWalls;
     /** Colors of the four walls. */
-    private final AssetManager.GameColor[] mWallColors;
+    private final TextureManager.GameColor[] mWallColors;
 
     /** Time that the current turn started at. */
     private long mStartOfTurn;
@@ -72,18 +70,16 @@ public class GameManager {
      * Sets up a new game manager.
      *
      * @param callback instance of callback interface
-     * @param assetManager textures for game objects
      * @param screenWidth width of the screen
      * @param screenHeight height of the screen
      */
-    public GameManager(GameCallback callback, AssetManager assetManager, int screenWidth, int screenHeight) {
+    public GameManager(GameCallback callback, int screenWidth, int screenHeight) {
         mScreenWidth = screenWidth;
         mScreenHeight = screenHeight;
-        mAssetManager = assetManager;
         mGameCallback = callback;
 
         Wall.initialize(screenWidth, screenHeight);
-        mWallColors = new AssetManager.GameColor[Wall.NUMBER_OF_WALLS];
+        mWallColors = new TextureManager.GameColor[Wall.NUMBER_OF_WALLS];
         Wall.getRandomWallColors(mRandomNumberGenerator, mWallColors, false);
         mWalls = new Wall[Wall.NUMBER_OF_WALLS];
         for (int i = 0; i < mWalls.length; i++) {
@@ -91,7 +87,7 @@ public class GameManager {
         }
 
         final float pauseButtonSize = Math.min(mScreenWidth, mScreenHeight) * PAUSE_BUTTON_SCALE;
-        mPauseButton = new Button(assetManager.getSystemIconTexture(AssetManager.SystemIcon.Pause),
+        mPauseButton = new Button(TextureManager.getSystemIconTexture(TextureManager.SystemIcon.Pause),
                 mScreenWidth - pauseButtonSize,
                 mScreenHeight - pauseButtonSize,
                 pauseButtonSize,
@@ -185,9 +181,9 @@ public class GameManager {
      */
     public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         if (mCurrentGameBall != null)
-            mCurrentGameBall.draw(spriteBatch, mAssetManager, mTurnLength, mCurrentTurnDuration);
+            mCurrentGameBall.draw(spriteBatch, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
-            wall.draw(spriteBatch, mAssetManager);
+            wall.draw(spriteBatch);
 
         if (gameState != GameScreen.GameState.GamePaused)
             mPauseButton.draw(spriteBatch);
@@ -295,7 +291,6 @@ public class GameManager {
      * Frees references to objects.
      */
     public void dispose() {
-        mAssetManager = null;
         mGameCallback = null;
     }
 

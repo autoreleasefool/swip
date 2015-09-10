@@ -1,6 +1,6 @@
 package ca.josephroque.swip.entity;
 
-import ca.josephroque.swip.manager.AssetManager;
+import ca.josephroque.swip.manager.TextureManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -32,7 +32,7 @@ public abstract class BasicBall
     /** {@code True} if the ball should be growing if it is scaling, {@code false} if it should be shrinking. */
     private boolean mGrowingOrShrinking;
     /** Color of the ball. */
-    private final AssetManager.GameColor mBallColor;
+    private final TextureManager.GameColor mBallColor;
 
     /** Circle which defines the ball's positioning. */
     private Circle mBoundingCircle;
@@ -44,7 +44,7 @@ public abstract class BasicBall
      * @param x horizontal position of the ball
      * @param y vertical position of the ball
      */
-    public BasicBall(AssetManager.GameColor color, float x, float y) {
+    public BasicBall(TextureManager.GameColor color, float x, float y) {
         if (!sBallsInitialized)
             throw new IllegalStateException("Must call initialize before creating any instances");
 
@@ -78,10 +78,9 @@ public abstract class BasicBall
      * Draws the ball to the screen.
      *
      * @param spriteBatch graphics context to draw to
-     * @param assetManager textures for game objects
      */
-    public void draw(SpriteBatch spriteBatch, AssetManager assetManager) {
-        spriteBatch.draw(assetManager.getBallTexture(mBallColor),
+    public void draw(SpriteBatch spriteBatch) {
+        spriteBatch.draw(TextureManager.getBallTexture(mBallColor),
                 getX() - getRadius(),
                 getY() - getRadius(),
                 getWidth(),

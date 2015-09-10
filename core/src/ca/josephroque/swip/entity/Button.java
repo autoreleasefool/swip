@@ -24,14 +24,15 @@ public class Button
     /**
      * Creates a new {@code Button} with the provided parameters.
      *
-     * @param textureRegion icon of the button
+     * @param icon icon of the button
      * @param x horizontal location
      * @param y vertical location
      * @param width button width
      * @param height button height
      */
-    public Button(TextureRegion textureRegion, float x, float y, float width, float height) {
+    public Button(TextureRegion icon, float x, float y, float width, float height) {
         mBoundingBox = new Rectangle(x, y, width, height);
+        mIconTexture = icon;
     }
 
     /**

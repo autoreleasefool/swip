@@ -1,6 +1,6 @@
 package ca.josephroque.swip.entity;
 
-import ca.josephroque.swip.manager.AssetManager;
+import ca.josephroque.swip.manager.TextureManager;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.manager.MenuManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -31,7 +31,7 @@ public class ButtonBall
      * @param y starting vertical position of the ball
      */
     public ButtonBall(MenuManager.MenuBallOptions option,
-                      AssetManager.GameColor ballColor,
+                      TextureManager.GameColor ballColor,
                       TextureRegion buttonIcon,
                       float x,
                       float y) {
@@ -55,10 +55,9 @@ public class ButtonBall
      * Draws the ball and its icon to the screen.
      *
      * @param spriteBatch graphics context to draw to
-     * @param assetManager textures for game objects
      */
-    public void draw(SpriteBatch spriteBatch, AssetManager assetManager) {
-        super.draw(spriteBatch, assetManager);
+    public void draw(SpriteBatch spriteBatch) {
+        super.draw(spriteBatch);
 
         if (mButtonIcon != null)
             drawIcon(spriteBatch);
