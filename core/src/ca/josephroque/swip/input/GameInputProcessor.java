@@ -19,6 +19,10 @@ public class GameInputProcessor
 
     /** The maximum number of locations to store of the user's finger history on the screen. */
     private static final int MAXIMUM_FINGER_HISTORY = 5;
+    /** Maximum number of milliseconds a user can hold their finger on the screen for to be "clicking". */
+    private static final int MAXIMUM_CLICK_HOLD_THRESHOLD = 300;
+    /** Maximum number of pixels a user's finger can move on the screen to be considered a click. */
+    private static final int MAXIMUM_CLICK_MOVE_THRESHOLD = 10;
 
     /**
      * The finger velocity is calculated in milliseconds, but game object velocities use seconds, so the finger velocity
@@ -35,8 +39,14 @@ public class GameInputProcessor
     private int mLastFingerX;
     /** Last recorded y location on screen of a finger. */
     private int mLastFingerY;
+    /** X location at which the user placed their finger on the screen. */
+    private int mFingerDownX;
+    /** Y location at which the user placed their finger on the screen. */
+    private int mFingerDownY;
     /** Indicates if the user's finger is currently on the screen. */
     private boolean mFingerDown;
+    /** Time that the user last placed their finger on the screen. */
+    private long mFingerDownTime;
     /** Indicates if the user took their finger off the screen in the last tick. */
     private boolean mFingerJustReleased;
 
@@ -73,12 +83,14 @@ public class GameInputProcessor
     }
 
     /**
-     * Checks if the user has released their finger since the last tick.
+     * Checks if the user has placed their finger down and released it in a very quick "clicking" motion.
      *
-     * @return {@code true} if the user released their finger from the screen recently
+     * @return {@code true} if the user has met the conditions for a click
      */
-    public boolean wasFingerJustReleased() {
-        return mFingerJustReleased;
+    public boolean clickOccurred() {
+        return mFingerJustReleased && TimeUtils.timeSinceMillis(mFingerDownTime) < MAXIMUM_CLICK_HOLD_THRESHOLD
+                && Math.abs(mLastFingerX - mFingerDownX) < MAXIMUM_CLICK_MOVE_THRESHOLD
+                && Math.abs(mLastFingerY - mFingerDownY) < MAXIMUM_CLICK_MOVE_THRESHOLD;
     }
 
     /**
@@ -126,9 +138,12 @@ public class GameInputProcessor
         mFingerHistory.clear();
         mLastFingerX = screenX;
         mLastFingerY = screenY;
+        mFingerDownX = screenX;
+        mFingerDownY = screenY;
         mFingerDown = true;
 
-        mFingerHistory.add(Triplet.create(screenX, screenY, TimeUtils.millis()));
+        mFingerDownTime = TimeUtils.millis();
+        mFingerHistory.add(Triplet.create(mLastFingerX, mLastFingerY, mFingerDownTime));
         return true;
     }
 

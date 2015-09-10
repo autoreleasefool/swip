@@ -39,6 +39,8 @@ public class GameScreen
 
     /** Current state of the application. */
     private GameState mGameState;
+    /** State of the application prior to it being paused. */
+    private GameState mPausedState;
 
     /** Handles game logic and rendering. */
     private GameManager mGameManager;
@@ -63,6 +65,11 @@ public class GameScreen
         public void startGame() {
             if (mGameManager != null)
                 mGameManager.startGame();
+        }
+
+        @Override
+        public void resumeGame() {
+            setState(mPausedState);
         }
     };
 
@@ -224,7 +231,9 @@ public class GameScreen
      * @param newState new state
      */
     public void setState(GameState newState) {
-        this.mGameState = newState;
+        if (newState == GameState.GamePaused)
+            mPausedState = mGameState;
+        mGameState = newState;
     }
 
     /**

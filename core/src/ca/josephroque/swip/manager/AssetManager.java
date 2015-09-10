@@ -14,8 +14,10 @@ public class AssetManager {
     @SuppressWarnings("unused")
     private static final String TAG = "AssetManager";
 
-    /** Total number of available colors for game textures. */
-    public static final int NUMBER_OF_COLORS = 10;
+    /** Size of icon assets. */
+    private static final int ICON_SIZE = 162;
+    /** Number of columns icons are organized into. */
+    private static final int ICON_COLUMNS = 6;
 
     /** Primary texture for game objects. */
     private final Texture mGameTexture;
@@ -44,6 +46,9 @@ public class AssetManager {
     /** Texture regions for balls in the main menu. */
     private TextureRegion[] mMenuOptionBalls;
 
+    /** Texture regions for system icons. */
+    private TextureRegion[] mSystemIcons;
+
     /** Potential colors of walls in the game. */
     public static final GameColor[] GAME_COLORS = GameColor.values();
 
@@ -61,21 +66,25 @@ public class AssetManager {
      */
     public void initialize() {
         // Creating object arrays for game textures
-        mLeftWalls = new TextureRegion[NUMBER_OF_COLORS];
-        mTopWalls = new TextureRegion[NUMBER_OF_COLORS];
-        mRightWalls = new TextureRegion[NUMBER_OF_COLORS];
-        mBottomWalls = new TextureRegion[NUMBER_OF_COLORS];
-        mBalls = new TextureRegion[NUMBER_OF_COLORS];
-        mLeftWallEdges = new TextureRegion[NUMBER_OF_COLORS][2];
-        mTopWallEdges = new TextureRegion[NUMBER_OF_COLORS][2];
-        mRightWallEdges = new TextureRegion[NUMBER_OF_COLORS][2];
-        mBottomWallEdges = new TextureRegion[NUMBER_OF_COLORS][2];
+        mLeftWalls = new TextureRegion[GameColor.getSize()];
+        mTopWalls = new TextureRegion[GameColor.getSize()];
+        mRightWalls = new TextureRegion[GameColor.getSize()];
+        mBottomWalls = new TextureRegion[GameColor.getSize()];
+        mBalls = new TextureRegion[GameColor.getSize()];
+        mLeftWallEdges = new TextureRegion[GameColor.getSize()][2];
+        mTopWallEdges = new TextureRegion[GameColor.getSize()][2];
+        mRightWallEdges = new TextureRegion[GameColor.getSize()][2];
+        mBottomWallEdges = new TextureRegion[GameColor.getSize()][2];
 
         // Creating object arrays for menu textures
         mMenuOptionBalls = new TextureRegion[MenuManager.MenuBallOptions.getSize()];
 
+        // Creating object arrays for other textures
+        mSystemIcons = new TextureRegion[SystemIcon.getSize()];
+
         loadGameTextures();
         loadMenuTextures();
+        loadOtherTextures();
     }
 
     /**
@@ -92,51 +101,51 @@ public class AssetManager {
         final int bottomEdgeVerticalWallYOffset = 1758;
         final int bottomEdgeHorizontalWallYOffset = 918;
 
-        for (int i = 0; i < NUMBER_OF_COLORS; i++) {
+        for (int i = 0; i < GameColor.getSize(); i++) {
             mLeftWalls[i] = new TextureRegion(mGameTexture,
-                    entitySize * Wall.NUMBER_OF_WALLS * (i % (NUMBER_OF_COLORS / 2)),
-                    entitySize + verticalWallHeight * (i / (NUMBER_OF_COLORS / 2)),
+                    entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
+                    entitySize + verticalWallHeight * (i / (GameColor.getSize() / 2)),
                     entitySize,
                     verticalWallHeight - entitySize * 2);
             mTopWalls[i] = new TextureRegion(mGameTexture,
-                    topWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (NUMBER_OF_COLORS / 2)),
-                    entitySize + verticalWallHeight * (i / (NUMBER_OF_COLORS / 2)),
+                    topWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
+                    entitySize + verticalWallHeight * (i / (GameColor.getSize() / 2)),
                     entitySize,
                     horizontalWallHeight - entitySize * 2);
             mRightWalls[i] = new TextureRegion(mGameTexture,
-                    rightWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (NUMBER_OF_COLORS / 2)),
-                    entitySize + verticalWallHeight * (i / (NUMBER_OF_COLORS / 2)),
+                    rightWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
+                    entitySize + verticalWallHeight * (i / (GameColor.getSize() / 2)),
                     entitySize,
                     verticalWallHeight - entitySize * 2);
             mBottomWalls[i] = new TextureRegion(mGameTexture,
-                    bottomWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (NUMBER_OF_COLORS / 2)),
-                    entitySize + verticalWallHeight * (i / (NUMBER_OF_COLORS / 2)),
+                    bottomWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
+                    entitySize + verticalWallHeight * (i / (GameColor.getSize() / 2)),
                     entitySize,
                     horizontalWallHeight - entitySize * 2);
             mBalls[i] = new TextureRegion(mGameTexture,
-                    ballX + entitySize * (i % (NUMBER_OF_COLORS / 2)),
-                    entitySize * (i / (NUMBER_OF_COLORS / 2)),
+                    ballX + entitySize * (i % (GameColor.getSize() / 2)),
+                    entitySize * (i / (GameColor.getSize() / 2)),
                     entitySize,
                     entitySize);
             for (int j = 0; j < 2; j++) {
                 mLeftWallEdges[i][j] = new TextureRegion(mGameTexture,
-                        entitySize * Wall.NUMBER_OF_WALLS * (i % (NUMBER_OF_COLORS / 2)),
-                        bottomEdgeVerticalWallYOffset * j + verticalWallHeight * (i / (NUMBER_OF_COLORS / 2)),
+                        entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
+                        bottomEdgeVerticalWallYOffset * j + verticalWallHeight * (i / (GameColor.getSize() / 2)),
                         entitySize,
                         entitySize);
                 mRightWallEdges[i][j] = new TextureRegion(mGameTexture,
-                        rightWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (NUMBER_OF_COLORS / 2)),
-                        bottomEdgeVerticalWallYOffset * j + verticalWallHeight * (i / (NUMBER_OF_COLORS / 2)),
+                        rightWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
+                        bottomEdgeVerticalWallYOffset * j + verticalWallHeight * (i / (GameColor.getSize() / 2)),
                         entitySize,
                         entitySize);
                 mTopWallEdges[i][j] = new TextureRegion(mGameTexture,
-                        topWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (NUMBER_OF_COLORS / 2)),
-                        bottomEdgeHorizontalWallYOffset * j + verticalWallHeight * (i / (NUMBER_OF_COLORS / 2)),
+                        topWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
+                        bottomEdgeHorizontalWallYOffset * j + verticalWallHeight * (i / (GameColor.getSize() / 2)),
                         entitySize,
                         entitySize);
                 mBottomWallEdges[i][j] = new TextureRegion(mGameTexture,
-                        bottomWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (NUMBER_OF_COLORS / 2)),
-                        bottomEdgeHorizontalWallYOffset * j + verticalWallHeight * (i / (NUMBER_OF_COLORS / 2)),
+                        bottomWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
+                        bottomEdgeHorizontalWallYOffset * j + verticalWallHeight * (i / (GameColor.getSize() / 2)),
                         entitySize,
                         entitySize);
             }
@@ -147,10 +156,21 @@ public class AssetManager {
      * Loads textures for the menu.
      */
     private void loadMenuTextures() {
-        final int assetSize = 162;
-
         for (int i = 0; i < mMenuOptionBalls.length; i++)
-            mMenuOptionBalls[i] = new TextureRegion(mMenuTexture, assetSize * i, 0, assetSize, assetSize);
+            mMenuOptionBalls[i] = new TextureRegion(mMenuTexture, ICON_SIZE * i, 0, ICON_SIZE, ICON_SIZE);
+    }
+
+    /**
+     * Loads other textures for the application.
+     */
+    private void loadOtherTextures() {
+        for (int i = 0; i < mSystemIcons.length; i++) {
+            mSystemIcons[i] = new TextureRegion(mMenuTexture,
+                    ICON_SIZE * (i % ICON_COLUMNS),
+                    ICON_SIZE * (i / ICON_COLUMNS),
+                    ICON_SIZE,
+                    ICON_SIZE);
+        }
     }
 
     /**
@@ -216,6 +236,16 @@ public class AssetManager {
     }
 
     /**
+     * Gets the corresponding icon for the system icon.
+     *
+     * @param icon system icon
+     * @return icon texture
+     */
+    public TextureRegion getSystemIconTexture(SystemIcon icon) {
+        return mSystemIcons[icon.ordinal()];
+    }
+
+    /**
      * Gets the corresponding icon for the ball option in the main menu.
      *
      * @param option main menu option
@@ -277,6 +307,38 @@ public class AssetManager {
         /** Salmon color. */
         Salmon,
         /** Field color. */
-        Field,
+        Field;
+
+        /** Size of the enum. */
+        private static final int SIZE = GameColor.values().length;
+
+        /**
+         * Gets the size of the enum.
+         *
+         * @return number of {@code GameColor} values
+         */
+        public static int getSize() {
+            return SIZE;
+        }
+    }
+
+    /**
+     * Icons which represent system operations.
+     */
+    public enum SystemIcon {
+        /** Icon which represents a pause button. */
+        Pause;
+
+        /** Size of the enum. */
+        private static final int SIZE = SystemIcon.values().length;
+
+        /**
+         * Gets the size of the enum.
+         *
+         * @return number of {@code SystemIcons}
+         */
+        public static int getSize() {
+            return SIZE;
+        }
     }
 }

@@ -1,6 +1,7 @@
 package ca.josephroque.swip.manager;
 
 import ca.josephroque.swip.entity.BasicBall;
+import ca.josephroque.swip.entity.Button;
 import ca.josephroque.swip.entity.GameBall;
 import ca.josephroque.swip.entity.Wall;
 import ca.josephroque.swip.input.GameInputProcessor;
@@ -30,6 +31,9 @@ public class GameManager {
     /** Number of milliseconds until a game starts. */
     private static final int TIME_UNTIL_GAME_STARTS = 1000;
 
+    /** Size of the pause button relative to the screen. */
+    private static final float PAUSE_BUTTON_SCALE = 0.15f;
+
     /** Width of the screen. */
     private int mScreenWidth;
     /** Height of the screen. */
@@ -48,6 +52,8 @@ public class GameManager {
 
     /** The ball being used by the game. */
     private GameBall mCurrentGameBall;
+    /** Button to pause the game. */
+    private Button mPauseButton;
     /** The four walls in the game. */
     private final Wall[] mWalls;
     /** Colors of the four walls. */
@@ -83,6 +89,13 @@ public class GameManager {
         for (int i = 0; i < mWalls.length; i++) {
             mWalls[i] = new Wall(i, mWallColors[i], mScreenWidth, mScreenHeight);
         }
+
+        final float pauseButtonSize = Math.min(mScreenWidth, mScreenHeight) * PAUSE_BUTTON_SCALE;
+        mPauseButton = new Button(assetManager.getSystemIconTexture(AssetManager.SystemIcon.Pause),
+                mScreenWidth - pauseButtonSize,
+                mScreenHeight - pauseButtonSize,
+                pauseButtonSize,
+                pauseButtonSize);
     }
 
     /**
@@ -118,7 +131,11 @@ public class GameManager {
         // Counts down timer to start of game
         if (TimeUtils.timeSinceMillis(mGameStartTime) >= TIME_UNTIL_GAME_STARTS && mGameCallback != null) {
             startGame();
-            mGameCallback.startGame();
+            if (mGameCallback != null)
+                mGameCallback.startGame();
+        } else if (mPauseButton.wasClicked(gameInput)) {
+            if (mGameCallback != null)
+                mGameCallback.pauseGame();
         }
     }
 
@@ -145,6 +162,9 @@ public class GameManager {
             else if (mCurrentGameBall.hasHitInvalidWall())
                 endGame();
         }
+
+        if (mPauseButton.wasClicked(gameInput) && mGameCallback != null)
+            mGameCallback.pauseGame();
     }
 
     /**
@@ -168,6 +188,9 @@ public class GameManager {
             mCurrentGameBall.draw(spriteBatch, mAssetManager, mTurnLength, mCurrentTurnDuration);
         for (Wall wall : mWalls)
             wall.draw(spriteBatch, mAssetManager);
+
+        if (gameState != GameScreen.GameState.GamePaused)
+            mPauseButton.draw(spriteBatch);
     }
 
     /**

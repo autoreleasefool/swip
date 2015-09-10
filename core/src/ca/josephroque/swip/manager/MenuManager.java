@@ -72,7 +72,7 @@ public class MenuManager {
      * @param delta number of seconds the last rendering took
      */
     public void tick(GameScreen.GameState gameState, GameInputProcessor gameInput, float delta) {
-        if (gameState != GameScreen.GameState.MainMenu)
+        if (gameState != GameScreen.GameState.MainMenu && gameState != GameScreen.GameState.GamePaused)
             throw new IllegalStateException("Invalid state for updating menu.");
 
         boolean optionSelected = false;
@@ -117,8 +117,12 @@ public class MenuManager {
 
         if (!optionSelected) {
             // Starts the game if no other option was selected
-            if (Gdx.input.justTouched() && mCallback != null)
-                mCallback.startGame();
+            if (Gdx.input.justTouched() && mCallback != null) {
+                if (gameState == GameScreen.GameState.GamePaused)
+                    mCallback.resumeGame();
+                else
+                    mCallback.startGame();
+            }
         }
     }
 
@@ -192,6 +196,11 @@ public class MenuManager {
          * Should start a new game.
          */
         void startGame();
+
+        /**
+         * Returns to playing the current game.
+         */
+        void resumeGame();
     }
 
 }

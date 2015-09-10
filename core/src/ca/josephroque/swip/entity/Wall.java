@@ -43,7 +43,7 @@ public class Wall
     /** The chance that two walls will be given the same color in a turn. */
     public static final float CHANCE_OF_SAME_WALL_COLOR = 0.2f;
     /** List of the current active colors. */
-    private static List<AssetManager.GameColor> sListActiveColors = new ArrayList<>(AssetManager.NUMBER_OF_COLORS);
+    private static List<AssetManager.GameColor> sListActiveColors = new ArrayList<>(AssetManager.GameColor.getSize());
 
     /** The side of the screen which this wall represents. */
     private final Side mWallSide;
@@ -252,7 +252,7 @@ public class Wall
         if (!sWallsInitialized)
             throw new IllegalStateException("Must initialize walls.");
 
-        if (sListActiveColors.size() < AssetManager.NUMBER_OF_COLORS)
+        if (sListActiveColors.size() < AssetManager.GameColor.getSize())
             sListActiveColors.add(AssetManager.GAME_COLORS[sListActiveColors.size()]);
     }
 
