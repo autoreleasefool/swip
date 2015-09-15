@@ -87,6 +87,15 @@ public final class MusicManager {
     }
 
     /**
+     * Checks if the user has enabled or disabled the playback of music.
+     *
+     * @return {@code true} if music playback is enabled, {@code false} otherwise
+     */
+    public boolean isMusicPlaybackEnabled() {
+        return sMusicEnabled;
+    }
+
+    /**
      * Enables or disables the playback of sound effects. Persists across instances of the application.
      *
      * @param enabled {@code true} to allow playback of sound effects
@@ -100,6 +109,15 @@ public final class MusicManager {
             preferences.putBoolean(SFX_ENABLED, enabled);
             preferences.flush();
         }
+    }
+
+    /**
+     * Checks if the user has enabled or disabled the playback of sound effects.
+     *
+     * @return {@code true} if sound effect playback is enabled, {@code false} otherwise
+     */
+    public boolean isSoundEffectPlaybackEnabled() {
+        return sSoundEffectsEnabled;
     }
 
     /**

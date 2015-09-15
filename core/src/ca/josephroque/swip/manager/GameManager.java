@@ -20,16 +20,16 @@ public class GameManager {
     @SuppressWarnings("unused")
     private static final String TAG = "GameManager";
 
-    /** Number of milliseconds that turns initially last. */
-    private static final int INITIAL_TURN_LENGTH = 10000; // TODO: change to actual start value, 1200
-    /** Number of milliseconds to subtract from the length of a turn at a time. */
-    private static final int TURN_LENGTH_DECREMENT = 50;
+    /** Number of seconds that turns initially last. */
+    private static final float INITIAL_TURN_LENGTH = 10f; // TODO: change to actual start value, 1.2f
+    /** Number of seconds to subtract from the length of a turn at a time. */
+    private static final float TURN_LENGTH_DECREMENT = 0.05f;
     /** Number of turns that must pass before the turn length is decremented. */
     private static final int TURNS_BEFORE_DECREMENT = 10;
-    /** Shortest number of milliseconds that a turn can last. */
-    private static final int MINIMUM_TURN_LENGTH = 300;
-    /** Number of milliseconds until a game starts. */
-    private static final int TIME_UNTIL_GAME_STARTS = 1000;
+    /** Shortest number of seconds that a turn can last. */
+    private static final float MINIMUM_TURN_LENGTH = 0.3f;
+    /** Number of seconds until a game starts. */
+    private static final float TIME_UNTIL_GAME_STARTS = 1f;
 
     /** Size of the pause button relative to the screen. */
     private static final float PAUSE_BUTTON_SCALE = 0.15f;
@@ -46,7 +46,7 @@ public class GameManager {
     private GameCallback mGameCallback;
 
     /** Time at which the game began, in milliseconds. */
-    private long mGameStartTime;
+    private float mGameCountdown;
 
     /** The ball being used by the game. */
     private GameBall mCurrentGameBall;
@@ -57,12 +57,10 @@ public class GameManager {
     /** Colors of the four walls. */
     private final TextureManager.GameColor[] mWallColors;
 
-    /** Time that the current turn started at. */
-    private long mStartOfTurn;
     /** Length of a single turn. */
-    private int mTurnLength;
+    private float mTurnLength;
     /** Number of milliseconds that have passed since this turn began. */
-    private int mCurrentTurnDuration;
+    private float mTurnDuration;
     /** Total number of turns that have passed since the game began (i.e. the player's score). */
     private int mTotalTurns;
 
@@ -125,7 +123,8 @@ public class GameManager {
      */
     private void tickGameStarting(GameInputProcessor gameInput, float delta) {
         // Counts down timer to start of game
-        if (TimeUtils.timeSinceMillis(mGameStartTime) >= TIME_UNTIL_GAME_STARTS && mGameCallback != null) {
+        mGameCountdown += delta;
+        if (mGameCountdown >= TIME_UNTIL_GAME_STARTS) {
             startGame();
             if (mGameCallback != null)
                 mGameCallback.startGame();
@@ -142,11 +141,9 @@ public class GameManager {
      * @param delta number of seconds the last rendering took
      */
     private void tickGamePlaying(GameInputProcessor gameInput, float delta) {
-        if (mStartOfTurn == 0)
-            mStartOfTurn = TimeUtils.millis();
-        mCurrentTurnDuration = (int) TimeUtils.timeSinceMillis(mStartOfTurn);
+        mTurnDuration += delta;
 
-        if (mCurrentTurnDuration >= mTurnLength) {
+        if (mTurnDuration >= mTurnLength) {
             endGame();
         } else {
             mCurrentGameBall.drag(gameInput);
@@ -181,7 +178,7 @@ public class GameManager {
      */
     public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         if (mCurrentGameBall != null)
-            mCurrentGameBall.draw(spriteBatch, mTurnLength, mCurrentTurnDuration);
+            mCurrentGameBall.draw(spriteBatch, mTurnLength, mTurnDuration);
         for (Wall wall : mWalls)
             wall.draw(spriteBatch);
 
@@ -193,11 +190,9 @@ public class GameManager {
      * Sets up a new game.
      */
     public void prepareNewGame() {
-        mStartOfTurn = 0;
+        mTurnDuration = 0;
         mTurnLength = INITIAL_TURN_LENGTH;
-        mCurrentTurnDuration = 0;
         mTotalTurns = 0;
-        mGameStartTime = TimeUtils.millis();
 
         mCurrentGameBall = null;
     }
@@ -221,6 +216,7 @@ public class GameManager {
         final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
         passableWalls[randomWall] = true;
         mCurrentGameBall = new GameBall(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
+        mCurrentGameBall.grow();
     }
 
     /**
@@ -236,7 +232,7 @@ public class GameManager {
      */
     private void turnSucceeded() {
         mTotalTurns++;
-        mStartOfTurn = TimeUtils.millis();
+        mTurnDuration = 0;
 
         if (mTotalTurns % Wall.TURNS_BEFORE_NEW_COLOR == 0)
             Wall.addWallColorToActive();
@@ -262,6 +258,7 @@ public class GameManager {
         }
 
         mCurrentGameBall = new GameBall(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
+        mCurrentGameBall.grow();
 
         if (mTotalTurns % TURNS_BEFORE_DECREMENT == 0)
             mTurnLength = Math.max(MINIMUM_TURN_LENGTH, mTurnLength - TURN_LENGTH_DECREMENT);

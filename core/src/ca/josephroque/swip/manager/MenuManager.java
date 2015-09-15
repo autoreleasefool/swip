@@ -22,6 +22,33 @@ public class MenuManager {
     /** Buttons for menu options. */
     private ButtonBall[] mMenuOptionBalls;
 
+    /** When a button ball finishes shrinking, this causes the opposing option to grow in its place. */
+    private BasicBall.ScalingCompleteListener mMenuOptionBallsListener = new BasicBall.ScalingCompleteListener() {
+        @Override
+        public void onScalingCompleted(BasicBall ball) {
+            for (ButtonBall buttonBall : mMenuOptionBalls) {
+                if (buttonBall == ball) {
+                    switch (buttonBall.getMenuOption()) {
+                        case MusicOn:
+                            mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].grow();
+                            break;
+                        case MusicOff:
+                            mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].grow();
+                            break;
+                        case SoundEffectsOn:
+                            mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].grow();
+                            break;
+                        case SoundEffectsOff:
+                            mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].grow();
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Invalid menu option");
+                    }
+                }
+            }
+        }
+    };
+
     /**
      * Sets up a new main menu.
      *
@@ -78,26 +105,22 @@ public class MenuManager {
                 optionSelected = true;
                 switch (option.getMenuOption()) {
                     case MusicOn:
-                        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].shrink();
-                        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].grow();
+                        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].shrink(mMenuOptionBallsListener);
                         if (mCallback != null)
                             mCallback.setMusicEnabled(false);
                         break;
                     case MusicOff:
-                        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].grow();
-                        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].shrink();
+                        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].shrink(mMenuOptionBallsListener);
                         if (mCallback != null)
                             mCallback.setMusicEnabled(true);
                         break;
                     case SoundEffectsOn:
-                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].shrink();
-                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].grow();
+                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].shrink(mMenuOptionBallsListener);
                         if (mCallback != null)
                             mCallback.setSoundEffectsEnabled(false);
                         break;
                     case SoundEffectsOff:
-                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].grow();
-                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].shrink();
+                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].shrink(mMenuOptionBallsListener);
                         if (mCallback != null)
                             mCallback.setSoundEffectsEnabled(true);
                         break;

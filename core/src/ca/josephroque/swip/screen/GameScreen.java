@@ -1,6 +1,7 @@
 package ca.josephroque.swip.screen;
 
 import ca.josephroque.swip.manager.GameManager;
+import ca.josephroque.swip.manager.MusicManager;
 import ca.josephroque.swip.manager.TextureManager;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.manager.MenuManager;
@@ -51,12 +52,12 @@ public class GameScreen
     private MenuManager.MenuCallback mMenuCallback = new MenuManager.MenuCallback() {
         @Override
         public void setMusicEnabled(boolean enabled) {
-            // TODO: enable or disable music
+            MusicManager.setMusicPlaybackEnabled(enabled);
         }
 
         @Override
         public void setSoundEffectsEnabled(boolean enabled) {
-            // TODO: enable or disable sound effects
+            MusicManager.setMusicPlaybackEnabled(enabled);
         }
 
         @Override
@@ -124,6 +125,9 @@ public class GameScreen
         mGameManager = new GameManager(mGameCallback, mScreenWidth, mScreenHeight);
         mMenuManager = new MenuManager(mMenuCallback, mScreenWidth, mScreenHeight);
 
+        // Loading music and sound effects
+        MusicManager.initialize(MusicManager.BackgroundTrack.One);
+
         // Displaying the main menu
         setState(GameState.MainMenu);
     }
@@ -159,6 +163,7 @@ public class GameScreen
         TextureManager.dispose();
         mGameManager.dispose();
         mMenuManager.dispose();
+        MusicManager.dispose();
 
         // Removes references
         mSpriteBatch = null;

@@ -3,7 +3,6 @@ package ca.josephroque.swip.entity;
 import ca.josephroque.swip.manager.TextureManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Circle;
-import com.badlogic.gdx.utils.TimeUtils;
 
 /**
  * Properties of ball objects on the screen.
@@ -16,7 +15,7 @@ public abstract class BasicBall
     private static final String TAG = "BasicBall";
 
     /** Number of milliseconds the ball will take to scale up. */
-    public static final float BALL_SCALE_TIME = 175f;
+    public static final float BALL_SCALE_TIME = 0.175f;
     /** Used to determine size of the ball as a percentage of the screen size. */
     private static final float BALL_SIZE_MULTIPLIER = 0.075f;
 
@@ -27,12 +26,14 @@ public abstract class BasicBall
 
     /** Scale for the ball radius, where {@code 1 = sMaximumBallRadius}. */
     private float mScale;
-    /** Time in milliseconds that this object began scaling. */
-    private long mScaleStartTime;
+    /** Number of milliseconds the ball has been scaling for. */
+    private float mScaleTime = BALL_SCALE_TIME;
     /** {@code True} if the ball should be growing if it is scaling, {@code false} if it should be shrinking. */
     private boolean mGrowingOrShrinking;
     /** Color of the ball. */
     private final TextureManager.GameColor mBallColor;
+    /** Callback interface for completion or interruption of scaling. */
+    private ScalingCompleteListener mScalingListener;
 
     /** Circle which defines the ball's positioning. */
     private Circle mBoundingCircle;
@@ -50,8 +51,6 @@ public abstract class BasicBall
 
         mBallColor = color;
         mBoundingCircle = new Circle(x, y, 0);
-        mScaleStartTime = TimeUtils.millis();
-        mGrowingOrShrinking = true;
     }
 
     /**
@@ -71,7 +70,7 @@ public abstract class BasicBall
      * @param delta number of seconds the last rendering took
      */
     public void tick(float delta) {
-        scale();
+        scale(delta);
     }
 
     /**
@@ -89,17 +88,24 @@ public abstract class BasicBall
 
     /**
      * Sets the size of the ball depending on how long it has been on screen.
+     *
+     * @param delta number of seconds the last rendering took
      */
-    private void scale() {
-        final long timeSinceScaleBegan = TimeUtils.timeSinceMillis(mScaleStartTime);
-        if (timeSinceScaleBegan < BALL_SCALE_TIME)
+    private void scale(float delta) {
+        mScaleTime += delta;
+        if (isScaling()) {
             mScale = (mGrowingOrShrinking)
-                    ? Math.min(1f, Math.max(0f, timeSinceScaleBegan / BALL_SCALE_TIME))
-                    : Math.max(0f, Math.min(1f, (-timeSinceScaleBegan + BALL_SCALE_TIME) / BALL_SCALE_TIME));
-        else
+                    ? Math.min(1f, Math.max(0f, mScaleTime / BALL_SCALE_TIME))
+                    : Math.max(0f, Math.min(1f, (-mScaleTime + BALL_SCALE_TIME) / BALL_SCALE_TIME));
+        } else {
             mScale = (mGrowingOrShrinking)
                     ? 1f
                     : 0f;
+            if (mScalingListener != null) {
+                mScalingListener.onScalingCompleted(this);
+                mScalingListener = null;
+            }
+        }
 
         mBoundingCircle.setRadius(sDefaultBallRadius * mScale);
     }
@@ -107,15 +113,48 @@ public abstract class BasicBall
     /**
      * Causes the ball to shrink to a scale of 0.0. If the ball is currently growing, it begins to shrink. If the ball
      * is already shrinking, this method does nothing.
+     *
+     * @param listener callback interface for when scaling is completed or is interrupted. Can be null.
+     */
+    public void shrink(ScalingCompleteListener listener) {
+        if (mGrowingOrShrinking) {
+            if (isScaling()) {
+                mScaleTime = -mScaleTime + BALL_SCALE_TIME;
+                if (mScalingListener != null)
+                    mScalingListener.interrupted(this);
+            } else {
+                mScaleTime = 0f;
+            }
+            mScalingListener = listener;
+            mGrowingOrShrinking = false;
+        }
+    }
+
+    /**
+     * Causes the ball to shrink to a scale of 0.0. If the ball is currently growing, it begins to shrink. If the ball
+     * is already shrinking, this method does nothing.
      */
     public void shrink() {
-        if (mGrowingOrShrinking) {
-            final long timeSinceScaleBegan = TimeUtils.timeSinceMillis(mScaleStartTime);
-            if (timeSinceScaleBegan < BALL_SCALE_TIME)
-                mScaleStartTime = TimeUtils.millis() - (-timeSinceScaleBegan + (long) BALL_SCALE_TIME);
-            else
-                mScaleStartTime = TimeUtils.millis();
-            mGrowingOrShrinking = false;
+        shrink(null);
+    }
+
+    /**
+     * Causes the ball to grow to its default scale (1.0). If the ball is currently shrinking, it begins to grow. If the
+     * ball is already growing, this method does nothing.
+     *
+     * @param listener callback interface for when scaling is completed or is interrupted. Can be null.
+     */
+    public void grow(ScalingCompleteListener listener) {
+        if (!mGrowingOrShrinking) {
+            if (isScaling()) {
+                mScaleTime = -mScaleTime + BALL_SCALE_TIME;
+                if (mScalingListener != null)
+                    mScalingListener.interrupted(this);
+            } else {
+                mScaleTime = 0f;
+            }
+            mScalingListener = listener;
+            mGrowingOrShrinking = true;
         }
     }
 
@@ -124,14 +163,7 @@ public abstract class BasicBall
      * ball is already growing, this method does nothing.
      */
     public void grow() {
-        if (!mGrowingOrShrinking) {
-            final long timeSinceScaleBegan = TimeUtils.timeSinceMillis(mScaleStartTime);
-            if (timeSinceScaleBegan < BALL_SCALE_TIME)
-                mScaleStartTime = TimeUtils.millis() - (-timeSinceScaleBegan + (long) BALL_SCALE_TIME);
-            else
-                mScaleStartTime = TimeUtils.millis();
-            mGrowingOrShrinking = true;
-        }
+        grow(null);
     }
 
     /**
@@ -141,7 +173,7 @@ public abstract class BasicBall
      * grow()} or {@code shrink()} was invoked.
      */
     public boolean isScaling() {
-        return TimeUtils.timeSinceMillis(mScaleStartTime) < BALL_SCALE_TIME;
+        return mScaleTime < BALL_SCALE_TIME;
     }
 
     /**
@@ -205,5 +237,26 @@ public abstract class BasicBall
     public static void initialize(int screenWidth, int screenHeight) {
         sDefaultBallRadius = Math.min(screenWidth, screenHeight) * BALL_SIZE_MULTIPLIER;
         sBallsInitialized = true;
+    }
+
+    /**
+     * Callback interface for when the ball has finished scaling.
+     */
+    public interface ScalingCompleteListener {
+        /**
+         * Called when the ball finishes scaling.
+         *
+         * @param ball the ball which finished scaling
+         */
+        void onScalingCompleted(BasicBall ball);
+
+        /**
+         * Called when the scaling is interrupted by a call to an opposite scaling method.
+         *
+         * @param ball the ball which was interrupted
+         */
+        default void interrupted(BasicBall ball) {
+            // does nothing
+        }
     }
 }
