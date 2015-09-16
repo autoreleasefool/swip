@@ -20,18 +20,16 @@ public final class MusicManager {
     /** Preference identifier to indicate if sound effects have been disabled by the user. */
     private static final String SFX_ENABLED = "sfx_enabled";
 
-    /** Number of seconds fading two songs will take. */
+    /** Number of seconds a song will take to fade out or in. */
     private static final float FADE_SPEED = 1f;
 
     /** Primary background music for the application. */
     private static Music sBackgroundMusic;
-    /** Next song to be played in the application, pre loaded to transition smoothly. */
-    private static Music sNextBackgroundMusic;
 
     /** The current background track being played by {@code sBackgroundMusic}. */
     private static BackgroundTrack sCurrentBackgroundTrack;
-    /** The background track being faded in. */
-    private static BackgroundTrack sFadingBackgroundTrack;
+    /** The background track to be played next. */
+    private static BackgroundTrack sNextBackgroundTrack;
     /** Number of seconds that a song has been fading for. */
     private static float sFadeTime = 1f;
 
@@ -75,8 +73,6 @@ public final class MusicManager {
             if (!enabled) {
                 sFadeTime = FADE_SPEED;
                 stopBackgroundMusic();
-                if (sNextBackgroundMusic != null)
-                    sNextBackgroundMusic.dispose();
             }
 
             // Updating preferences
@@ -121,6 +117,18 @@ public final class MusicManager {
     }
 
     /**
+     * Plays a sound effect once.
+     *
+     * @param sound sound effect to play
+     */
+    public static void playSoundEffect(SoundEffect sound) {
+        if (!sSoundEffectsEnabled)
+            return;
+
+        sSoundEffects[sound.ordinal()].play();
+    }
+
+    /**
      * If the background music is not currently playing, starts it.
      */
     public static void playBackgroundMusic() {
@@ -129,8 +137,6 @@ public final class MusicManager {
 
         if (!sBackgroundMusic.isPlaying())
             sBackgroundMusic.play();
-        if (sFadeTime < FADE_SPEED && sNextBackgroundMusic != null)
-            sNextBackgroundMusic.play();
     }
 
     /**
@@ -139,8 +145,6 @@ public final class MusicManager {
     public static void pauseBackgroundMusic() {
         if (sBackgroundMusic.isPlaying())
             sBackgroundMusic.pause();
-        if (sNextBackgroundMusic != null && sNextBackgroundMusic.isPlaying())
-            sNextBackgroundMusic.pause();
     }
 
     /**
@@ -149,8 +153,6 @@ public final class MusicManager {
     public static void stopBackgroundMusic() {
         if (sBackgroundMusic.isPlaying())
             sBackgroundMusic.stop();
-        if (sNextBackgroundMusic != null && sNextBackgroundMusic.isPlaying())
-            sNextBackgroundMusic.stop();
     }
 
     /**
@@ -167,12 +169,8 @@ public final class MusicManager {
             return;
 
         if (track != sCurrentBackgroundTrack) {
-            sNextBackgroundMusic = loadBackgroundMusic(track);
-            sFadingBackgroundTrack = track;
+            sNextBackgroundTrack = track;
             sFadeTime = 0f;
-            sNextBackgroundMusic.setVolume(0f);
-            sNextBackgroundMusic.setLooping(true);
-            sNextBackgroundMusic.play();
         }
     }
 
@@ -186,27 +184,25 @@ public final class MusicManager {
         if (!sMusicEnabled)
             return;
 
-        if (sNextBackgroundMusic != null && sNextBackgroundMusic.isPlaying()
-                && sBackgroundMusic.isPlaying()) {
-            sFadeTime += delta;
+        if (sBackgroundMusic.isPlaying() && sFadeTime < FADE_SPEED * 2) {
             if (sFadeTime < FADE_SPEED) {
                 sBackgroundMusic.setVolume((-sFadeTime + FADE_SPEED) / FADE_SPEED);
-                sNextBackgroundMusic.setVolume(sFadeTime / FADE_SPEED);
             } else {
-                sBackgroundMusic.stop();
-                sNextBackgroundMusic.setVolume(1f);
-                sCurrentBackgroundTrack = sFadingBackgroundTrack;
+                if (sNextBackgroundTrack != null) {
+                    sCurrentBackgroundTrack = sNextBackgroundTrack;
+                    sNextBackgroundTrack = null;
 
-                final Music oldBackgroundMusic = sBackgroundMusic;
-                sBackgroundMusic = sNextBackgroundMusic;
-                sNextBackgroundMusic = null;
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        oldBackgroundMusic.dispose();
-                    }
-                }).start();
+                    sBackgroundMusic.stop();
+                    sBackgroundMusic.dispose();
+                    sBackgroundMusic = loadBackgroundMusic(sCurrentBackgroundTrack);
+                    sBackgroundMusic.setLooping(true);
+                    sBackgroundMusic.play();
+                }
+                sBackgroundMusic.setVolume(sFadeTime / FADE_SPEED);
             }
+            sFadeTime += delta;
+        }  else if (sBackgroundMusic.getVolume() < 1) {
+            sBackgroundMusic.setVolume(1);
         }
     }
 
@@ -217,7 +213,7 @@ public final class MusicManager {
      * @return the background music
      */
     private static Music loadBackgroundMusic(BackgroundTrack track) {
-        return Gdx.audio.newMusic(Gdx.files.internal("audio/bm/" + track + ".wav"));
+        return Gdx.audio.newMusic(Gdx.files.internal("audio/bm/" + track + ".mp3"));
     }
 
     /**
@@ -227,7 +223,7 @@ public final class MusicManager {
      * @return the sound effect
      */
     private static Sound loadSound(SoundEffect sound) {
-        return Gdx.audio.newSound(Gdx.files.internal("audio/sound/" + sound + ".wav"));
+        return Gdx.audio.newSound(Gdx.files.internal("audio/sfx/" + sound + ".wav"));
     }
 
     /**
@@ -236,8 +232,6 @@ public final class MusicManager {
     public static void dispose() {
         if (sBackgroundMusic != null)
             sBackgroundMusic.dispose();
-        if (sNextBackgroundMusic != null)
-            sNextBackgroundMusic.dispose();
 
         for (Sound sound : sSoundEffects)
             sound.dispose();
