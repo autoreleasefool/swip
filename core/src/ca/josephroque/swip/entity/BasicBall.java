@@ -30,6 +30,9 @@ public abstract class BasicBall
     private float mScaleTime = BALL_SCALE_TIME;
     /** {@code True} if the ball should be growing if it is scaling, {@code false} if it should be shrinking. */
     private boolean mGrowingOrShrinking;
+    /** Indicates if the ball has been hidden and should not scale. */
+    private boolean mHidden;
+
     /** Color of the ball. */
     private final TextureManager.GameColor mBallColor;
     /** Callback interface for completion or interruption of scaling. */
@@ -79,6 +82,9 @@ public abstract class BasicBall
      * @param spriteBatch graphics context to draw to
      */
     public void draw(SpriteBatch spriteBatch) {
+        if (isHidden())
+            return;
+
         spriteBatch.draw(TextureManager.getBallTexture(mBallColor),
                 getX() - getRadius(),
                 getY() - getRadius(),
@@ -92,6 +98,9 @@ public abstract class BasicBall
      * @param delta number of seconds the last rendering took
      */
     private void scale(float delta) {
+        if (isHidden())
+            return;
+
         mScaleTime += delta;
         if (isScaling()) {
             mScale = (mGrowingOrShrinking)
@@ -145,6 +154,8 @@ public abstract class BasicBall
      * @param listener callback interface for when scaling is completed or is interrupted. Can be null.
      */
     public void grow(ScalingCompleteListener listener) {
+        mHidden = false;
+
         if (!mGrowingOrShrinking) {
             if (isScaling()) {
                 mScaleTime = -mScaleTime + BALL_SCALE_TIME;
@@ -167,6 +178,16 @@ public abstract class BasicBall
     }
 
     /**
+     * Hides the ball so it will not be drawn.
+     */
+    public void hide() {
+        mHidden = true;
+        mGrowingOrShrinking = false;
+        mScale = 0;
+        mScaleTime = BALL_SCALE_TIME;
+    }
+
+    /**
      * Checks if the ball is currently scaling.
      *
      * @return {@code true} if {@code BALL_SCALE_TIME} has not passed since the ball was created, or since {@code
@@ -174,6 +195,15 @@ public abstract class BasicBall
      */
     public boolean isScaling() {
         return mScaleTime < BALL_SCALE_TIME;
+    }
+
+    /**
+     * Checks if the ball has been hidden. Can only be unhidden by calling grow().
+     *
+     * @return {@code true} if the ball has been hidden and will not scale or be drawn.
+     */
+    public boolean isHidden() {
+        return mHidden;
     }
 
     /**

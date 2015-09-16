@@ -7,7 +7,6 @@ import ca.josephroque.swip.entity.Wall;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.TimeUtils;
 
 import java.util.Random;
 
@@ -86,7 +85,7 @@ public class GameManager {
 
         final float pauseButtonSize = Math.min(mScreenWidth, mScreenHeight) * PAUSE_BUTTON_SCALE;
         mPauseButton = new Button(TextureManager.getSystemIconTexture(TextureManager.SystemIcon.Pause),
-                mScreenWidth - pauseButtonSize,
+                0,
                 mScreenHeight - pauseButtonSize,
                 pauseButtonSize,
                 pauseButtonSize);
@@ -224,13 +223,14 @@ public class GameManager {
      */
     public void endGame() {
         if (mGameCallback != null)
-            mGameCallback.endGame();
+            mGameCallback.endGame(mTotalTurns);
     }
 
     /**
      * Increases the player's score and starts a new turn.
      */
     private void turnSucceeded() {
+        MusicManager.playSoundEffect(MusicManager.SoundEffect.PointEarned);
         mTotalTurns++;
         mTurnDuration = 0;
 
@@ -307,7 +307,9 @@ public class GameManager {
 
         /**
          * Should end the current game - the player has lost.
+         *
+         * @param finalScore score the user obtained
          */
-        void endGame();
+        void endGame(int finalScore);
     }
 }

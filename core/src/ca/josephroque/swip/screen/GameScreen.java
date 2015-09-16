@@ -48,6 +48,11 @@ public class GameScreen
     /** Handles main menu events and rendering. */
     private MenuManager mMenuManager;
 
+    /** The most recent score the user obtained in the game. */
+    private int mMostRecentScore;
+    /** The highest score the user has obtained in the game, ever. */
+    private int mHighScore;
+
     /** Callback interface for main menu events. */
     private MenuManager.MenuCallback mMenuCallback = new MenuManager.MenuCallback() {
         @Override
@@ -70,6 +75,16 @@ public class GameScreen
         public void resumeGame() {
             setState(mPausedState);
         }
+
+        @Override
+        public int getHighScore() {
+            return mHighScore;
+        }
+
+        @Override
+        public int getMostRecentScore() {
+            return mMostRecentScore;
+        }
     };
 
     /** Callback interface for game events. */
@@ -85,7 +100,9 @@ public class GameScreen
         }
 
         @Override
-        public void endGame() {
+        public void endGame(int finalScore) {
+            updateMostRecentScore(finalScore);
+            saveIfHighScore(finalScore);
             setState(GameState.Ended);
         }
     };
@@ -139,7 +156,8 @@ public class GameScreen
 
     @Override
     public void pause() {
-        // does nothing
+        if (mGameState == GameState.GamePlaying || mGameState == GameState.GameStarting)
+            setState(GameState.GamePaused);
     }
 
     @Override
@@ -183,14 +201,11 @@ public class GameScreen
                 break;
             case GameStarting:
             case GamePlaying:
-            case GamePaused:
                 mGameManager.tick(mGameState, mGameInput, delta);
                 break;
+            case GamePaused:
             case Ended:
-                if (Gdx.input.justTouched()) {
-                    mGameManager.prepareNewGame();
-                    setState(GameState.GameStarting);
-                }
+                mMenuManager.tick(mGameState, mGameInput, delta);
                 break;
             default:
                 throw new IllegalStateException("invalid game state.");
@@ -227,6 +242,37 @@ public class GameScreen
     }
 
     /**
+     * Updates the score which the user most recently obtained in a game.
+     *
+     * @param score most recent score
+     */
+    private void updateMostRecentScore(int score) {
+        mMostRecentScore = score;
+    }
+
+    /**
+     * Checks if the score is higher than the user's current high score. If it is, the high score is updated and
+     * submitted to the leaderboard.
+     *
+     * @param score score to check
+     */
+    private void saveIfHighScore(int score) {
+        if (score > mHighScore) {
+            // TODO: save the user's high score locally
+            // TODO: submit user's high score to leaderboard
+            mHighScore = score;
+        }
+    }
+
+    /**
+     * Resets the state of the menu if it is being displayed to the player.
+     */
+    private void resetMenuIfShown() {
+        if (mGameState == GameState.MainMenu || mGameState == GameState.GamePaused || mGameState == GameState.Ended)
+            mMenuManager.resetMenuItems();
+    }
+
+    /**
      * Changes the state of the application.
      *
      * @param newState new state
@@ -235,6 +281,8 @@ public class GameScreen
         if (newState == GameState.GamePaused)
             mPausedState = mGameState;
         mGameState = newState;
+
+        resetMenuIfShown();
     }
 
     /**

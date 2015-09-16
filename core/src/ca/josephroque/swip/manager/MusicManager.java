@@ -87,7 +87,7 @@ public final class MusicManager {
      *
      * @return {@code true} if music playback is enabled, {@code false} otherwise
      */
-    public boolean isMusicPlaybackEnabled() {
+    public static boolean isMusicPlaybackEnabled() {
         return sMusicEnabled;
     }
 
@@ -112,7 +112,7 @@ public final class MusicManager {
      *
      * @return {@code true} if sound effect playback is enabled, {@code false} otherwise
      */
-    public boolean isSoundEffectPlaybackEnabled() {
+    public static boolean isSoundEffectPlaybackEnabled() {
         return sSoundEffectsEnabled;
     }
 
@@ -126,6 +126,31 @@ public final class MusicManager {
             return;
 
         sSoundEffects[sound.ordinal()].play();
+    }
+
+    /**
+     * Loads and plays the specified track as background music. If the track is already loaded, it is restarted from the
+     * beginning.
+     *
+     * @param track track to play
+     */
+    public static void playBackgroundMusicFromBeginning(BackgroundTrack track) {
+        if (!sMusicEnabled)
+            return;
+
+        if (sCurrentBackgroundTrack != track) {
+            if (sBackgroundMusic.isPlaying())
+                sBackgroundMusic.stop();
+            sBackgroundMusic.dispose();
+
+            sBackgroundMusic = loadBackgroundMusic(track);
+            sCurrentBackgroundTrack = track;
+        } else {
+            sBackgroundMusic.setPosition(0);
+            sBackgroundMusic.play();
+        }
+
+        playBackgroundMusic();
     }
 
     /**
@@ -201,7 +226,7 @@ public final class MusicManager {
                 sBackgroundMusic.setVolume(sFadeTime / FADE_SPEED);
             }
             sFadeTime += delta;
-        }  else if (sBackgroundMusic.getVolume() < 1) {
+        } else if (sBackgroundMusic.getVolume() < 1) {
             sBackgroundMusic.setVolume(1);
         }
     }

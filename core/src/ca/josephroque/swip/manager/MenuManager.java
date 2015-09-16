@@ -94,7 +94,8 @@ public class MenuManager {
      * @param delta number of seconds the last rendering took
      */
     public void tick(GameScreen.GameState gameState, GameInputProcessor gameInput, float delta) {
-        if (gameState != GameScreen.GameState.MainMenu && gameState != GameScreen.GameState.GamePaused)
+        if (gameState != GameScreen.GameState.Ended && gameState != GameScreen.GameState.GamePaused
+                && gameState != GameScreen.GameState.MainMenu)
             throw new IllegalStateException("Invalid state for updating menu.");
 
         boolean optionSelected = false;
@@ -153,6 +154,16 @@ public class MenuManager {
     public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         for (ButtonBall option : mMenuOptionBalls) {
             option.draw(spriteBatch);
+        }
+    }
+
+    /**
+     * Resets manu items to an initial state to be animated again.
+     */
+    public void resetMenuItems() {
+        for (ButtonBall option : mMenuOptionBalls) {
+            option.hide();
+            option.grow(null);
         }
     }
 
@@ -218,6 +229,20 @@ public class MenuManager {
          * Returns to playing the current game.
          */
         void resumeGame();
+
+        /**
+         * Should get the high score of the user.
+         *
+         * @return high score
+         */
+        int getHighScore();
+
+        /**
+         * Should get the most recent score obtained by the user in a game.
+         *
+         * @return most recent score
+         */
+        int getMostRecentScore();
     }
 
 }
