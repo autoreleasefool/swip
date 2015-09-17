@@ -29,6 +29,8 @@ public class Wall
     public static final int TURNS_BEFORE_SAME_WALL_COLORS = 20;
     /** Used to determine size of walls as a percentage of the screen size. */
     private static final float WALL_SIZE_MULTIPLIER = 0.15f;
+    /** Number of seconds that a wall animating into place will take. */
+    private static final float WALL_TRANSLATION_TIME = 0.175f;
 
     /** Array of the possible values for {@code Side}. */
     private static final Side[] POSSIBLE_SIDES = Side.values();
@@ -47,11 +49,16 @@ public class Wall
 
     /** The side of the screen which this wall represents. */
     private final Side mWallSide;
+    /** Number of seconds a wall has been translating for. */
+    private float mWallTranslationTime;
     /** Color of the wall. */
     private TextureManager.GameColor mWallColor;
 
     /** Rectangle which defines the bounds of the wall. */
     private Rectangle mBoundingBox;
+
+    /** Instance of callback interface. */
+    private TranslationCompleteListener mTranslationListener;
 
     /**
      * Initializes a new wall by converting the provided int to a {@code Side}.
@@ -205,7 +212,9 @@ public class Wall
 
     @Override
     public void tick(float delta) {
-        // does nothing
+        mWallTranslationTime += delta;
+        if (mWallTranslationTime > WALL_TRANSLATION_TIME && mTranslationListener != null)
+            mTranslationListener.onTranslationCompleted(this);
     }
 
     /**
@@ -294,6 +303,15 @@ public class Wall
         return -1;
     }
 
+    /**
+     * Sets the callback interface.
+     *
+     * @param listener instance of callback interface, or {@code null}
+     */
+    public void setTranslationCompleteListener(TranslationCompleteListener listener) {
+        mTranslationListener = listener;
+    }
+
     @Override
     public float getX() {
         return mBoundingBox.getX();
@@ -322,6 +340,19 @@ public class Wall
     @Override
     public void updatePosition(float delta) {
         // does nothing
+    }
+
+    /**
+     * Callback interface for when the wall finishes its translations.
+     */
+    public interface TranslationCompleteListener {
+
+        /**
+         * Invoked when this wall finishes translsting.
+         *
+         * @param wall this wall
+         */
+        void onTranslationCompleted(Wall wall);
     }
 
     /**

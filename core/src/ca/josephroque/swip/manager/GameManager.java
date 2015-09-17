@@ -51,8 +51,12 @@ public class GameManager {
     private GameBall mCurrentGameBall;
     /** Button to pause the game. */
     private Button mPauseButton;
-    /** The four walls in the game. */
-    private final Wall[] mWalls;
+    /** The four main walls in the gam. */
+    private Wall[] mPrimaryWalls;
+    /** Four walls which switch places with the primary walls. */
+    private Wall[] mSecondaryWalls;
+    /** Indicates if the secondary walls should be drawn. */
+    private boolean mDrawSecondaryWalls;
     /** Colors of the four walls. */
     private final TextureManager.GameColor[] mWallColors;
 
@@ -62,6 +66,28 @@ public class GameManager {
     private float mTurnDuration;
     /** Total number of turns that have passed since the game began (i.e. the player's score). */
     private int mTotalTurns;
+
+    /** Number of secondary walls which have finished animating. */
+    private int mWallsFinishedAnimating;
+    /** Replaces primary walls with secondary walls when the secondary walls finish animating. */
+    private Wall.TranslationCompleteListener mWallTranslationListener = new Wall.TranslationCompleteListener() {
+        @Override
+        public void onTranslationCompleted(Wall wall) {
+            for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
+                if (mSecondaryWalls[i] == wall)
+                    mWallsFinishedAnimating++;
+            }
+
+            // If all four walls have finished their animation
+            if (mWallsFinishedAnimating == Wall.NUMBER_OF_WALLS) {
+                mWallsFinishedAnimating = 0;
+                mDrawSecondaryWalls = false;
+                Wall[] temp = mPrimaryWalls;
+                mPrimaryWalls = mSecondaryWalls;
+                mSecondaryWalls = temp;
+            }
+        }
+    };
 
     /**
      * Sets up a new game manager.
@@ -77,10 +103,16 @@ public class GameManager {
 
         Wall.initialize(screenWidth, screenHeight);
         mWallColors = new TextureManager.GameColor[Wall.NUMBER_OF_WALLS];
+
+        // Randomizing colors for initial walls
         Wall.getRandomWallColors(mRandomNumberGenerator, mWallColors, false);
-        mWalls = new Wall[Wall.NUMBER_OF_WALLS];
-        for (int i = 0; i < mWalls.length; i++) {
-            mWalls[i] = new Wall(i, mWallColors[i], mScreenWidth, mScreenHeight);
+        mPrimaryWalls = new Wall[Wall.NUMBER_OF_WALLS];
+        mSecondaryWalls = new Wall[Wall.NUMBER_OF_WALLS];
+        for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
+            mPrimaryWalls[i] = new Wall(i, mWallColors[i], mScreenWidth, mScreenHeight);
+            mPrimaryWalls[i].setTranslationCompleteListener(mWallTranslationListener);
+            mSecondaryWalls[i] = new Wall(i, mWallColors[i], mScreenWidth, mScreenHeight);
+            mSecondaryWalls[i].setTranslationCompleteListener(mWallTranslationListener);
         }
 
         final float pauseButtonSize = Math.min(mScreenWidth, mScreenHeight) * PAUSE_BUTTON_SCALE;
@@ -131,6 +163,13 @@ public class GameManager {
             if (mGameCallback != null)
                 mGameCallback.pauseGame();
         }
+
+        for (Wall wall: mPrimaryWalls)
+            wall.tick(delta);
+        if (mDrawSecondaryWalls) {
+            for (Wall wall : mSecondaryWalls)
+                wall.tick(delta);
+        }
     }
 
     /**
@@ -147,7 +186,7 @@ public class GameManager {
         } else {
             mCurrentGameBall.drag(gameInput);
             mCurrentGameBall.tryToReleaseBall(gameInput);
-            mCurrentGameBall.tick(delta, mWalls);
+            mCurrentGameBall.tick(delta, mPrimaryWalls);
 
             if (mCurrentGameBall.hasPassedThroughWall())
                 turnSucceeded();
@@ -157,6 +196,13 @@ public class GameManager {
 
         if (mPauseButton.wasClicked(gameInput) && mGameCallback != null)
             mGameCallback.pauseGame();
+
+        for (Wall wall: mPrimaryWalls)
+            wall.tick(delta);
+        if (mDrawSecondaryWalls) {
+            for (Wall wall : mSecondaryWalls)
+                wall.tick(delta);
+        }
     }
 
     /**
@@ -178,7 +224,9 @@ public class GameManager {
     public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         if (mCurrentGameBall != null)
             mCurrentGameBall.draw(spriteBatch, mTurnLength, mTurnDuration);
-        for (Wall wall : mWalls)
+        for (Wall wall : mPrimaryWalls)
+            wall.draw(spriteBatch);
+        for (Wall wall : mSecondaryWalls)
             wall.draw(spriteBatch);
 
         if (gameState != GameScreen.GameState.GamePaused)
@@ -203,17 +251,33 @@ public class GameManager {
         // Setting initial properties of entities
         BasicBall.initialize(mScreenWidth, mScreenHeight);
         Wall.initialize(mScreenWidth, mScreenHeight);
+        replaceWallsAndBall();
+    }
 
+    /**
+     * Creates new colors for the walls and updates the color of the ball based on those colors.
+     */
+    private void replaceWallsAndBall() {
         // Creating the four walls
-        Wall.getRandomWallColors(mRandomNumberGenerator, mWallColors, false);
-        for (int i = 0; i < mWalls.length; i++) {
-            mWalls[i] = new Wall(i, mWallColors[i], mScreenWidth, mScreenHeight);
+        int wallPairFirstIndex = Wall.getRandomWallColors(mRandomNumberGenerator,
+                mWallColors,
+                mTotalTurns > Wall.TURNS_BEFORE_SAME_WALL_COLORS);
+        for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++)
+            mSecondaryWalls[i].updateWallColor(mWallColors[i]);
+
+        // Generating new ball at center of screen
+        final int randomWall;
+        final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
+        if (wallPairFirstIndex == -1) {
+            randomWall = mRandomNumberGenerator.nextInt(Wall.NUMBER_OF_WALLS);
+            passableWalls[randomWall] = true;
+        } else {
+            randomWall = wallPairFirstIndex;
+            passableWalls[randomWall] = true;
+            for (int i = randomWall + 1; i < Wall.NUMBER_OF_WALLS; i++)
+                passableWalls[i] = mWallColors[randomWall].equals(mWallColors[i]);
         }
 
-        // Creating the ball
-        final int randomWall = mRandomNumberGenerator.nextInt(Wall.NUMBER_OF_WALLS);
-        final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
-        passableWalls[randomWall] = true;
         mCurrentGameBall = new GameBall(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
         mCurrentGameBall.grow();
     }
@@ -237,28 +301,7 @@ public class GameManager {
         if (mTotalTurns % Wall.TURNS_BEFORE_NEW_COLOR == 0)
             Wall.addWallColorToActive();
 
-        // Generates new colors for the wall
-        int wallPairFirstIndex = Wall.getRandomWallColors(mRandomNumberGenerator,
-                mWallColors,
-                mTotalTurns > Wall.TURNS_BEFORE_SAME_WALL_COLORS);
-        for (int i = 0; i < mWalls.length; i++)
-            mWalls[i].updateWallColor(mWallColors[i]);
-
-        // Generating new ball at center of screen
-        final int randomWall;
-        final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
-        if (wallPairFirstIndex == -1) {
-            randomWall = mRandomNumberGenerator.nextInt(Wall.NUMBER_OF_WALLS);
-            passableWalls[randomWall] = true;
-        } else {
-            randomWall = wallPairFirstIndex;
-            passableWalls[randomWall] = true;
-            for (int i = randomWall + 1; i < Wall.NUMBER_OF_WALLS; i++)
-                passableWalls[i] = mWallColors[randomWall].equals(mWallColors[i]);
-        }
-
-        mCurrentGameBall = new GameBall(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
-        mCurrentGameBall.grow();
+        replaceWallsAndBall();
 
         if (mTotalTurns % TURNS_BEFORE_DECREMENT == 0)
             mTurnLength = Math.max(MINIMUM_TURN_LENGTH, mTurnLength - TURN_LENGTH_DECREMENT);
@@ -275,11 +318,10 @@ public class GameManager {
         mScreenHeight = height;
 
         // Resizing entities on screen
-        if (mWalls != null) {
-            for (Wall wall : mWalls)
-                wall.resize(width, height);
-        }
-
+        for (Wall wall : mPrimaryWalls)
+            wall.resize(width, height);
+        for (Wall wall : mSecondaryWalls)
+            wall.resize(width, height);
         if (mCurrentGameBall != null)
             mCurrentGameBall.resize(width, height);
     }

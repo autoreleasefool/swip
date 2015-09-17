@@ -66,9 +66,9 @@ public class GameScreen
         }
 
         @Override
-        public void startGame() {
-            if (mGameManager != null)
-                mGameManager.startGame();
+        public void prepareNewGame() {
+            mGameManager.prepareNewGame();
+            setState(GameState.GameStarting);
         }
 
         @Override

@@ -23,9 +23,13 @@ public class MenuManager {
     private ButtonBall[] mMenuOptionBalls;
 
     /** When a button ball finishes shrinking, this causes the opposing option to grow in its place. */
+    @SuppressWarnings("FieldCanBeLocal")
     private BasicBall.ScalingCompleteListener mMenuOptionBallsListener = new BasicBall.ScalingCompleteListener() {
         @Override
-        public void onScalingCompleted(BasicBall ball) {
+        public void onScalingCompleted(BasicBall ball, boolean growingOrShrinking) {
+            if (!growingOrShrinking)
+                return;
+
             for (ButtonBall buttonBall : mMenuOptionBalls) {
                 if (buttonBall == ball) {
                     switch (buttonBall.getMenuOption()) {
@@ -84,6 +88,8 @@ public class MenuManager {
                 TextureManager.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOff),
                 screenWidth / 2 + BasicBall.getDefaultBallRadius() * 2,
                 screenHeight / 2);
+        for (ButtonBall ball : mMenuOptionBalls)
+            ball.setScalingCompleteListener(mMenuOptionBallsListener);
     }
 
     /**
@@ -106,22 +112,22 @@ public class MenuManager {
                 optionSelected = true;
                 switch (option.getMenuOption()) {
                     case MusicOn:
-                        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].shrink(mMenuOptionBallsListener);
+                        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].shrink();
                         if (mCallback != null)
                             mCallback.setMusicEnabled(false);
                         break;
                     case MusicOff:
-                        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].shrink(mMenuOptionBallsListener);
+                        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].shrink();
                         if (mCallback != null)
                             mCallback.setMusicEnabled(true);
                         break;
                     case SoundEffectsOn:
-                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].shrink(mMenuOptionBallsListener);
+                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].shrink();
                         if (mCallback != null)
                             mCallback.setSoundEffectsEnabled(false);
                         break;
                     case SoundEffectsOff:
-                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].shrink(mMenuOptionBallsListener);
+                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].shrink();
                         if (mCallback != null)
                             mCallback.setSoundEffectsEnabled(true);
                         break;
@@ -140,7 +146,7 @@ public class MenuManager {
                 if (gameState == GameScreen.GameState.GamePaused)
                     mCallback.resumeGame();
                 else
-                    mCallback.startGame();
+                    mCallback.prepareNewGame();
             }
         }
     }
@@ -163,7 +169,7 @@ public class MenuManager {
     public void resetMenuItems() {
         for (ButtonBall option : mMenuOptionBalls) {
             option.hide();
-            option.grow(null);
+            option.grow();
         }
     }
 
@@ -223,7 +229,7 @@ public class MenuManager {
         /**
          * Should start a new game.
          */
-        void startGame();
+        void prepareNewGame();
 
         /**
          * Returns to playing the current game.

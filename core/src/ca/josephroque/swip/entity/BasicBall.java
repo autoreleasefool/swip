@@ -111,7 +111,7 @@ public abstract class BasicBall
                     ? 1f
                     : 0f;
             if (mScalingListener != null) {
-                mScalingListener.onScalingCompleted(this);
+                mScalingListener.onScalingCompleted(this, mGrowingOrShrinking);
                 mScalingListener = null;
             }
         }
@@ -122,10 +122,8 @@ public abstract class BasicBall
     /**
      * Causes the ball to shrink to a scale of 0.0. If the ball is currently growing, it begins to shrink. If the ball
      * is already shrinking, this method does nothing.
-     *
-     * @param listener callback interface for when scaling is completed or is interrupted. Can be null.
      */
-    public void shrink(ScalingCompleteListener listener) {
+    public void shrink() {
         if (mGrowingOrShrinking) {
             if (isScaling()) {
                 mScaleTime = -mScaleTime + BALL_SCALE_TIME;
@@ -134,26 +132,15 @@ public abstract class BasicBall
             } else {
                 mScaleTime = 0f;
             }
-            mScalingListener = listener;
             mGrowingOrShrinking = false;
         }
     }
 
     /**
-     * Causes the ball to shrink to a scale of 0.0. If the ball is currently growing, it begins to shrink. If the ball
-     * is already shrinking, this method does nothing.
-     */
-    public void shrink() {
-        shrink(null);
-    }
-
-    /**
      * Causes the ball to grow to its default scale (1.0). If the ball is currently shrinking, it begins to grow. If the
      * ball is already growing, this method does nothing.
-     *
-     * @param listener callback interface for when scaling is completed or is interrupted. Can be null.
      */
-    public void grow(ScalingCompleteListener listener) {
+    public void grow() {
         mHidden = false;
 
         if (!mGrowingOrShrinking) {
@@ -164,17 +151,8 @@ public abstract class BasicBall
             } else {
                 mScaleTime = 0f;
             }
-            mScalingListener = listener;
             mGrowingOrShrinking = true;
         }
-    }
-
-    /**
-     * Causes the ball to grow to its default scale (1.0). If the ball is currently shrinking, it begins to grow. If the
-     * ball is already growing, this method does nothing.
-     */
-    public void grow() {
-        grow(null);
     }
 
     /**
@@ -185,6 +163,15 @@ public abstract class BasicBall
         mGrowingOrShrinking = false;
         mScale = 0;
         mScaleTime = BALL_SCALE_TIME;
+    }
+
+    /**
+     * Sets the callback interface.
+     *
+     * @param listener instance of callback interface, or {@code null}
+     */
+    public void setScalingCompleteListener(ScalingCompleteListener listener) {
+        mScalingListener = listener;
     }
 
     /**
@@ -277,8 +264,10 @@ public abstract class BasicBall
          * Called when the ball finishes scaling.
          *
          * @param ball the ball which finished scaling
+         * @param growingOrShrinking {@code true} if the ball has finished growing, {@code false} if it finished
+         * shrinking
          */
-        void onScalingCompleted(BasicBall ball);
+        void onScalingCompleted(BasicBall ball, boolean growingOrShrinking);
 
         /**
          * Called when the scaling is interrupted by a call to an opposite scaling method.
