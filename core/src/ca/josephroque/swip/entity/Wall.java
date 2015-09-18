@@ -155,8 +155,12 @@ public class Wall
      */
     private void drawHorizontalWall(SpriteBatch spriteBatch) {
         final float rotation = -90;
+        float horizontalOffset = Math.max(1f, mWallTranslationTime / WALL_TRANSLATION_TIME);
+        if (mWallSide == Side.Left)
+            horizontalOffset *= -1;
+
         spriteBatch.draw(TextureManager.getWallTexture(mWallSide, mWallColor),
-                getX() + sDefaultWallSize,
+                getX() + sDefaultWallSize + horizontalOffset,
                 getY() + sDefaultWallSize,
                 0,
                 0,
@@ -166,7 +170,7 @@ public class Wall
                 1,
                 rotation);
         spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, true),
-                getX() + getWidth() - sDefaultWallSize,
+                getX() + getWidth() - sDefaultWallSize + horizontalOffset,
                 getY() + sDefaultWallSize,
                 0,
                 0,
@@ -176,7 +180,7 @@ public class Wall
                 1,
                 rotation);
         spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, false),
-                getX(),
+                getX() + horizontalOffset,
                 getY() + sDefaultWallSize,
                 0,
                 0,
@@ -193,28 +197,34 @@ public class Wall
      * @param spriteBatch graphics context to draw to
      */
     private void drawVerticalWall(SpriteBatch spriteBatch) {
+        float verticalOffset = Math.max(1f, mWallTranslationTime / WALL_TRANSLATION_TIME);
+        if (mWallSide == Side.Bottom)
+            verticalOffset *= -1;
+
         spriteBatch.draw(TextureManager.getWallTexture(mWallSide, mWallColor),
                 getX(),
-                getY() + sDefaultWallSize,
+                getY() + sDefaultWallSize + verticalOffset,
                 getWidth(),
                 getHeight() - sDefaultWallSize * 2);
         spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, true),
                 getX(),
-                getY() + getHeight() - sDefaultWallSize,
+                getY() + getHeight() - sDefaultWallSize + verticalOffset,
                 sDefaultWallSize,
                 sDefaultWallSize);
         spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, false),
                 getX(),
-                getY(),
+                getY() + verticalOffset,
                 sDefaultWallSize,
                 sDefaultWallSize);
     }
 
     @Override
     public void tick(float delta) {
-        mWallTranslationTime += delta;
-        if (mWallTranslationTime > WALL_TRANSLATION_TIME && mTranslationListener != null)
-            mTranslationListener.onTranslationCompleted(this);
+        if (mWallTranslationTime < WALL_TRANSLATION_TIME) {
+            mWallTranslationTime += delta;
+            if (mWallTranslationTime > WALL_TRANSLATION_TIME && mTranslationListener != null)
+                mTranslationListener.onTranslationCompleted(this);
+        }
     }
 
     /**
@@ -224,6 +234,13 @@ public class Wall
      */
     public void updateWallColor(TextureManager.GameColor wallColor) {
         mWallColor = wallColor;
+    }
+
+    /**
+     * Moves the wall off screen and translates it into position.
+     */
+    public void startTranslation() {
+        mWallTranslationTime = 0f;
     }
 
     /**

@@ -238,7 +238,7 @@ public class GameScreen
                 throw new IllegalStateException("invalid game state.");
         }
 
-        mSpriteBatch.begin();
+        mSpriteBatch.end();
     }
 
     /**

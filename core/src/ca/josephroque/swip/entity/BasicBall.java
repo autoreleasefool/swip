@@ -274,8 +274,6 @@ public abstract class BasicBall
          *
          * @param ball the ball which was interrupted
          */
-        default void interrupted(BasicBall ball) {
-            // does nothing
-        }
+        void interrupted(BasicBall ball);
     }
 }

@@ -161,7 +161,7 @@ public final class TextureManager {
         for (int i = 0; i < sSystemIcons.length; i++) {
             sSystemIcons[i] = new TextureRegion(sMenuTexture,
                     ICON_SIZE * (i % ICON_COLUMNS),
-                    ICON_SIZE * (i / ICON_COLUMNS),
+                    ICON_SIZE * (i / ICON_COLUMNS) + ICON_SIZE,
                     ICON_SIZE,
                     ICON_SIZE);
         }

@@ -51,6 +51,11 @@ public class MenuManager {
                 }
             }
         }
+
+        @Override
+        public void interrupted(BasicBall ball) {
+            // does nothing
+        }
     };
 
     /**
@@ -63,6 +68,7 @@ public class MenuManager {
     public MenuManager(MenuCallback callback, int screenWidth, int screenHeight) {
         mCallback = callback;
 
+        BasicBall.initialize(screenWidth, screenHeight);
         mMenuOptionBalls = new ButtonBall[MenuBallOptions.getSize()];
         mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()]
                 = new ButtonBall(MenuBallOptions.MusicOn,
@@ -70,7 +76,7 @@ public class MenuManager {
                 TextureManager.getMenuButtonIconTexture(MenuBallOptions.MusicOn),
                 screenWidth / 2 - BasicBall.getDefaultBallRadius() * 2,
                 screenHeight / 2);
-        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()]
+        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()]
                 = new ButtonBall(MenuBallOptions.MusicOff,
                 TextureManager.GameColor.Red,
                 TextureManager.getMenuButtonIconTexture(MenuBallOptions.MusicOff),
@@ -82,7 +88,7 @@ public class MenuManager {
                 TextureManager.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOn),
                 screenWidth / 2 + BasicBall.getDefaultBallRadius() * 2,
                 screenHeight / 2);
-        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()]
+        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()]
                 = new ButtonBall(MenuBallOptions.SoundEffectsOff,
                 TextureManager.GameColor.Red,
                 TextureManager.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOff),

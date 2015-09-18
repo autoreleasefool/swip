@@ -70,6 +70,7 @@ public class GameManager {
     /** Number of secondary walls which have finished animating. */
     private int mWallsFinishedAnimating;
     /** Replaces primary walls with secondary walls when the secondary walls finish animating. */
+    @SuppressWarnings("FieldCanBeLocal")
     private Wall.TranslationCompleteListener mWallTranslationListener = new Wall.TranslationCompleteListener() {
         @Override
         public void onTranslationCompleted(Wall wall) {
@@ -170,6 +171,9 @@ public class GameManager {
             for (Wall wall : mSecondaryWalls)
                 wall.tick(delta);
         }
+
+        if (mPauseButton.wasClicked(gameInput) && mGameCallback != null)
+            mGameCallback.pauseGame();
     }
 
     /**
@@ -229,7 +233,7 @@ public class GameManager {
         for (Wall wall : mSecondaryWalls)
             wall.draw(spriteBatch);
 
-        if (gameState != GameScreen.GameState.GamePaused)
+        if (gameState == GameScreen.GameState.GamePlaying || gameState == GameScreen.GameState.GameStarting)
             mPauseButton.draw(spriteBatch);
     }
 
@@ -262,10 +266,13 @@ public class GameManager {
         int wallPairFirstIndex = Wall.getRandomWallColors(mRandomNumberGenerator,
                 mWallColors,
                 mTotalTurns > Wall.TURNS_BEFORE_SAME_WALL_COLORS);
-        for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++)
+        for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
             mSecondaryWalls[i].updateWallColor(mWallColors[i]);
+            mSecondaryWalls[i].startTranslation();
+        }
 
         // Generating new ball at center of screen
+        mDrawSecondaryWalls = true;
         final int randomWall;
         final boolean[] passableWalls = new boolean[Wall.NUMBER_OF_WALLS];
         if (wallPairFirstIndex == -1) {
