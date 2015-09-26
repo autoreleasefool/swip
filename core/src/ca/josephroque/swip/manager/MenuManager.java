@@ -4,7 +4,6 @@ import ca.josephroque.swip.entity.BasicBall;
 import ca.josephroque.swip.entity.ButtonBall;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -27,7 +26,7 @@ public class MenuManager {
     private BasicBall.ScalingCompleteListener mMenuOptionBallsListener = new BasicBall.ScalingCompleteListener() {
         @Override
         public void onScalingCompleted(BasicBall ball, boolean growingOrShrinking) {
-            if (!growingOrShrinking)
+            if (growingOrShrinking)
                 return;
 
             for (ButtonBall buttonBall : mMenuOptionBalls) {
@@ -148,7 +147,7 @@ public class MenuManager {
 
         if (!optionSelected) {
             // Starts the game if no other option was selected
-            if (Gdx.input.justTouched() && mCallback != null) {
+            if (gameInput.clickOccurred() && mCallback != null) {
                 if (gameState == GameScreen.GameState.GamePaused)
                     mCallback.resumeGame();
                 else
@@ -170,13 +169,21 @@ public class MenuManager {
     }
 
     /**
-     * Resets manu items to an initial state to be animated again.
+     * Resets menu items to an initial state to be animated again.
      */
     public void resetMenuItems() {
-        for (ButtonBall option : mMenuOptionBalls) {
+        for (ButtonBall option : mMenuOptionBalls)
             option.hide();
-            option.grow();
-        }
+
+        if (MusicManager.isMusicPlaybackEnabled())
+            mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].grow();
+        else
+            mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].grow();
+
+        if (MusicManager.isSoundEffectPlaybackEnabled())
+            mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].grow();
+        else
+            mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].grow();
     }
 
     /**

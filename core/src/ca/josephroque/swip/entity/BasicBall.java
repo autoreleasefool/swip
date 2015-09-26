@@ -32,6 +32,8 @@ public abstract class BasicBall
     private boolean mGrowingOrShrinking;
     /** Indicates if the ball has been hidden and should not scale. */
     private boolean mHidden;
+    /** Indicates if the ball's scaling animation has not completed before and the listener should be invoked. */
+    private boolean mScalingCompleted;
 
     /** Color of the ball. */
     private final TextureManager.GameColor mBallColor;
@@ -110,9 +112,10 @@ public abstract class BasicBall
             mScale = (mGrowingOrShrinking)
                     ? 1f
                     : 0f;
-            if (mScalingListener != null) {
-                mScalingListener.onScalingCompleted(this, mGrowingOrShrinking);
-                mScalingListener = null;
+            if (!mScalingCompleted) {
+                mScalingCompleted = true;
+                if (mScalingListener != null)
+                    mScalingListener.onScalingCompleted(this, mGrowingOrShrinking);
             }
         }
 
@@ -124,6 +127,8 @@ public abstract class BasicBall
      * is already shrinking, this method does nothing.
      */
     public void shrink() {
+        mScalingCompleted = false;
+
         if (mGrowingOrShrinking) {
             if (isScaling()) {
                 mScaleTime = -mScaleTime + BALL_SCALE_TIME;
@@ -142,6 +147,7 @@ public abstract class BasicBall
      */
     public void grow() {
         mHidden = false;
+        mScalingCompleted = false;
 
         if (!mGrowingOrShrinking) {
             if (isScaling()) {

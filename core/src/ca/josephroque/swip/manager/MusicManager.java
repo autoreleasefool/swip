@@ -52,7 +52,7 @@ public final class MusicManager {
 
         Preferences preferences = Gdx.app.getPreferences(PreferenceUtils.PREFERENCES);
         sMusicEnabled = preferences.getBoolean(MUSIC_ENABLED, true);
-        sMusicEnabled = preferences.getBoolean(SFX_ENABLED, true);
+        sSoundEffectsEnabled = preferences.getBoolean(SFX_ENABLED, true);
 
         // Loading sounds
         SoundEffect[] soundEffects = SoundEffect.values();

@@ -62,7 +62,7 @@ public class GameScreen
 
         @Override
         public void setSoundEffectsEnabled(boolean enabled) {
-            MusicManager.setMusicPlaybackEnabled(enabled);
+            MusicManager.setSoundEffectPlaybackEnabled(enabled);
         }
 
         @Override
