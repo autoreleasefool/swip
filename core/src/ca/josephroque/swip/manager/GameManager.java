@@ -6,6 +6,7 @@ import ca.josephroque.swip.entity.GameBall;
 import ca.josephroque.swip.entity.Wall;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.Random;
@@ -28,7 +29,7 @@ public class GameManager {
     /** Shortest number of seconds that a turn can last. */
     private static final float MINIMUM_TURN_LENGTH = 0.3f;
     /** Number of seconds until a game starts. */
-    private static final float TIME_UNTIL_GAME_STARTS = 1f;
+    private static final float TIME_UNTIL_GAME_STARTS = 3f;
 
     /** Size of the pause button relative to the screen. */
     private static final float PAUSE_BUTTON_SCALE = 0.15f;
@@ -81,6 +82,7 @@ public class GameManager {
 
             // If all four walls have finished their animation
             if (mWallsFinishedAnimating == Wall.NUMBER_OF_WALLS) {
+                Gdx.app.debug(TAG, "Replacing 4 walls");
                 mWallsFinishedAnimating = 0;
                 mDrawSecondaryWalls = false;
                 Wall[] temp = mPrimaryWalls;
@@ -230,8 +232,10 @@ public class GameManager {
             mCurrentGameBall.draw(spriteBatch, mTurnLength, mTurnDuration);
         for (Wall wall : mPrimaryWalls)
             wall.draw(spriteBatch);
-        for (Wall wall : mSecondaryWalls)
-            wall.draw(spriteBatch);
+        if (mDrawSecondaryWalls) {
+            for (Wall wall : mSecondaryWalls)
+                wall.draw(spriteBatch);
+        }
 
         if (gameState == GameScreen.GameState.GamePlaying || gameState == GameScreen.GameState.GameStarting)
             mPauseButton.draw(spriteBatch);

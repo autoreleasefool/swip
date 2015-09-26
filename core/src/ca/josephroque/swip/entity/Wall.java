@@ -45,7 +45,8 @@ public class Wall
     /** The chance that two walls will be given the same color in a turn. */
     public static final float CHANCE_OF_SAME_WALL_COLOR = 0.2f;
     /** List of the current active colors. */
-    private static List<TextureManager.GameColor> sListActiveColors = new ArrayList<>(TextureManager.GameColor.getSize());
+    private static List<TextureManager.GameColor> sListActiveColors
+            = new ArrayList<>(TextureManager.GameColor.getSize());
 
     /** The side of the screen which this wall represents. */
     private final Side mWallSide;
@@ -155,13 +156,15 @@ public class Wall
      */
     private void drawHorizontalWall(SpriteBatch spriteBatch) {
         final float rotation = -90;
-        float horizontalOffset = Math.max(1f, mWallTranslationTime / WALL_TRANSLATION_TIME);
-        if (mWallSide == Side.Left)
-            horizontalOffset *= -1;
+        float verticalOffset =
+                Math.min(1f, Math.max(0f, (-mWallTranslationTime + WALL_TRANSLATION_TIME) / WALL_TRANSLATION_TIME))
+                        * sDefaultWallSize;
+        if (mWallSide == Side.Bottom)
+            verticalOffset *= -1;
 
         spriteBatch.draw(TextureManager.getWallTexture(mWallSide, mWallColor),
-                getX() + sDefaultWallSize + horizontalOffset,
-                getY() + sDefaultWallSize,
+                getX() + sDefaultWallSize,
+                getY() + sDefaultWallSize + verticalOffset,
                 0,
                 0,
                 getHeight(),
@@ -170,8 +173,8 @@ public class Wall
                 1,
                 rotation);
         spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, true),
-                getX() + getWidth() - sDefaultWallSize + horizontalOffset,
-                getY() + sDefaultWallSize,
+                getX() + getWidth() - sDefaultWallSize,
+                getY() + sDefaultWallSize + verticalOffset,
                 0,
                 0,
                 sDefaultWallSize,
@@ -180,8 +183,8 @@ public class Wall
                 1,
                 rotation);
         spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, false),
-                getX() + horizontalOffset,
-                getY() + sDefaultWallSize,
+                getX(),
+                getY() + sDefaultWallSize + verticalOffset,
                 0,
                 0,
                 sDefaultWallSize,
@@ -197,23 +200,25 @@ public class Wall
      * @param spriteBatch graphics context to draw to
      */
     private void drawVerticalWall(SpriteBatch spriteBatch) {
-        float verticalOffset = Math.max(1f, mWallTranslationTime / WALL_TRANSLATION_TIME);
-        if (mWallSide == Side.Bottom)
-            verticalOffset *= -1;
+        float horizontalOffset =
+                Math.min(1f, Math.max(0f, (-mWallTranslationTime + WALL_TRANSLATION_TIME) / WALL_TRANSLATION_TIME))
+                        * sDefaultWallSize;
+        if (mWallSide == Side.Left)
+            horizontalOffset *= -1;
 
         spriteBatch.draw(TextureManager.getWallTexture(mWallSide, mWallColor),
-                getX(),
-                getY() + sDefaultWallSize + verticalOffset,
+                getX() + horizontalOffset,
+                getY() + sDefaultWallSize,
                 getWidth(),
                 getHeight() - sDefaultWallSize * 2);
         spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, true),
-                getX(),
-                getY() + getHeight() - sDefaultWallSize + verticalOffset,
+                getX() + horizontalOffset,
+                getY() + getHeight() - sDefaultWallSize,
                 sDefaultWallSize,
                 sDefaultWallSize);
         spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, false),
-                getX(),
-                getY() + verticalOffset,
+                getX() + horizontalOffset,
+                getY(),
                 sDefaultWallSize,
                 sDefaultWallSize);
     }
