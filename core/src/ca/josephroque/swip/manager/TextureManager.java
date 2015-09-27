@@ -49,6 +49,9 @@ public final class TextureManager {
     /** Texture regions for system icons. */
     private static TextureRegion[] sSystemIcons;
 
+    /** Texture regions for the countdown when a new game begins. */
+    private static TextureRegion[] sGameCountdown;
+
     /** Potential colors of walls in the game. */
     public static final GameColor[] GAME_COLORS = GameColor.values();
 
@@ -75,6 +78,7 @@ public final class TextureManager {
 
         // Creating object arrays for other textures
         sSystemIcons = new TextureRegion[SystemIcon.getSize()];
+        sGameCountdown = new TextureRegion[GameCountdownIcon.getSize()];
 
         loadGameTextures();
         loadMenuTextures();
@@ -164,6 +168,22 @@ public final class TextureManager {
                     ICON_SIZE * (i / ICON_COLUMNS) + ICON_SIZE,
                     ICON_SIZE,
                     ICON_SIZE);
+        }
+
+        final int left = 0;
+        final int top = 1;
+        final int width = 2;
+        final int height = 3;
+
+        String countdownIconDefinitions = Gdx.files.internal("config/countdown_icons.txt").readString();
+        String[] countdownIcons = countdownIconDefinitions.split("\n");
+        for (int i = 0; i < sGameCountdown.length; i++) {
+            String[] rect = countdownIcons[i].split(" ");
+            sGameCountdown[i] = new TextureRegion(sMenuTexture,
+                    Integer.parseInt(rect[left]),
+                    Integer.parseInt(rect[top]),
+                    Integer.parseInt(rect[width]),
+                    Integer.parseInt(rect[height]));
         }
     }
 
@@ -260,6 +280,16 @@ public final class TextureManager {
     }
 
     /**
+     * Gets the texture of a particular icon for the initial game countdown.
+     *
+     * @param icon position in the countdown
+     * @return the texture to draw
+     */
+    public static TextureRegion getCountdownTexture(GameCountdownIcon icon) {
+        return sGameCountdown[icon.ordinal()];
+    }
+
+    /**
      * Frees resources used by textures in this class.
      */
     public static void dispose() {
@@ -273,6 +303,7 @@ public final class TextureManager {
         sRightWallEdges = null;
         sBottomWallEdges = null;
         sMenuOptionBalls = null;
+        sGameCountdown = null;
 
         sGameTexture.dispose();
         sMenuTexture.dispose();
@@ -336,10 +367,54 @@ public final class TextureManager {
         /**
          * Gets the size of the enum.
          *
-         * @return number of {@code SystemIcons}
+         * @return number of {@code SystemIcon}s
          */
         public static int getSize() {
             return SIZE;
+        }
+    }
+
+    /**
+     * Icons which represent the countdown before a game begins.
+     */
+    public enum GameCountdownIcon {
+        /** Icon which represents a 3 in the countdown. */
+        Three,
+        /** Icon which represents a 2 in the countdown. */
+        Two,
+        /** Icon which represents a 1 in the countdown. */
+        One,
+        /** Icon which represents GO! in the countdown. */
+        Go;
+
+        /** SIze of the enum. */
+        private static final int SIZE = GameCountdownIcon.values().length;
+
+        /**
+         * Gets the size of the enum.
+         *
+         * @return number of {@code GameCountdownIcon}s
+         */
+        public static int getSize() {
+            return SIZE;
+        }
+
+        /**
+         * Gets a countdown icon based on the total percentage of the countdown which has passed.
+         *
+         * @param percentage a percentage from 0 to 1
+         * @return the countdown icon
+         */
+        @SuppressWarnings("CheckStyle")
+        public static GameCountdownIcon getCountdownIcon(float percentage) {
+            if (percentage < 0.25f)
+                return Three;
+            else if (percentage < 0.5f)
+                return Two;
+            else if (percentage < 0.75f)
+                return One;
+            else
+                return Go;
         }
     }
 }

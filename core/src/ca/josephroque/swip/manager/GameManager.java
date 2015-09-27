@@ -29,7 +29,7 @@ public class GameManager {
     /** Shortest number of seconds that a turn can last. */
     private static final float MINIMUM_TURN_LENGTH = 0.3f;
     /** Number of seconds until a game starts. */
-    private static final float TIME_UNTIL_GAME_STARTS = 3f;
+    private static final float TIME_UNTIL_GAME_STARTS = 2f;
 
     /** Size of the pause button relative to the screen. */
     private static final float PAUSE_BUTTON_SCALE = 0.15f;
@@ -167,7 +167,7 @@ public class GameManager {
                 mGameCallback.pauseGame();
         }
 
-        for (Wall wall: mPrimaryWalls)
+        for (Wall wall : mPrimaryWalls)
             wall.tick(delta);
         if (mDrawSecondaryWalls) {
             for (Wall wall : mSecondaryWalls)
@@ -203,7 +203,7 @@ public class GameManager {
         if (mPauseButton.wasClicked(gameInput) && mGameCallback != null)
             mGameCallback.pauseGame();
 
-        for (Wall wall: mPrimaryWalls)
+        for (Wall wall : mPrimaryWalls)
             wall.tick(delta);
         if (mDrawSecondaryWalls) {
             for (Wall wall : mSecondaryWalls)
@@ -237,8 +237,23 @@ public class GameManager {
                 wall.draw(spriteBatch);
         }
 
-        if (gameState == GameScreen.GameState.GamePlaying || gameState == GameScreen.GameState.GameStarting)
-            mPauseButton.draw(spriteBatch);
+        switch (gameState) {
+            case GamePlaying:
+                mPauseButton.draw(spriteBatch);
+                break;
+            case GameStarting:
+                mPauseButton.draw(spriteBatch);
+                float countdownPosition = mGameCountdown / TIME_UNTIL_GAME_STARTS;
+                spriteBatch.draw(TextureManager.getCountdownTexture(TextureManager.GameCountdownIcon.getCountdownIcon(
+                        countdownPosition)),
+                        mScreenWidth / 2 - BasicBall.getDefaultBallRadius(),
+                        mScreenHeight / 2 - BasicBall.getDefaultBallRadius(),
+                        BasicBall.getDefaultBallRadius() * 2,
+                        BasicBall.getDefaultBallRadius() * 2);
+                break;
+            default:
+                // does nothing - no more to draw
+        }
     }
 
     /**
