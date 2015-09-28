@@ -6,8 +6,8 @@ import ca.josephroque.swip.entity.GameBall;
 import ca.josephroque.swip.entity.Wall;
 import ca.josephroque.swip.input.GameInputProcessor;
 import ca.josephroque.swip.screen.GameScreen;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import java.util.Random;
 
@@ -45,7 +45,7 @@ public class GameManager {
     /** Instance of callback interface. */
     private GameCallback mGameCallback;
 
-    /** Time at which the game began, in milliseconds. */
+    /** Time that has passed since the game began≈, in seconds. */
     private float mGameCountdown;
 
     /** The ball being used by the game. */
@@ -82,7 +82,6 @@ public class GameManager {
 
             // If all four walls have finished their animation
             if (mWallsFinishedAnimating == Wall.NUMBER_OF_WALLS) {
-                Gdx.app.debug(TAG, "Replacing 4 walls");
                 mWallsFinishedAnimating = 0;
                 mDrawSecondaryWalls = false;
                 Wall[] temp = mPrimaryWalls;
@@ -244,11 +243,15 @@ public class GameManager {
             case GameStarting:
                 mPauseButton.draw(spriteBatch);
                 float countdownPosition = mGameCountdown / TIME_UNTIL_GAME_STARTS;
+                TextureRegion countdownIcon
+                        = TextureManager.getCountdownTexture(TextureManager.GameCountdownIcon.getCountdownIcon(
+                        countdownPosition));
+                float sizeRatio = countdownIcon.getRegionWidth() / (float) countdownIcon.getRegionHeight();
                 spriteBatch.draw(TextureManager.getCountdownTexture(TextureManager.GameCountdownIcon.getCountdownIcon(
-                        countdownPosition)),
-                        mScreenWidth / 2 - BasicBall.getDefaultBallRadius(),
+                                countdownPosition)),
+                        mScreenWidth / 2 - BasicBall.getDefaultBallRadius() * sizeRatio,
                         mScreenHeight / 2 - BasicBall.getDefaultBallRadius(),
-                        BasicBall.getDefaultBallRadius() * 2,
+                        BasicBall.getDefaultBallRadius() * 2 * sizeRatio,
                         BasicBall.getDefaultBallRadius() * 2);
                 break;
             default:
@@ -263,6 +266,7 @@ public class GameManager {
         mTurnDuration = 0;
         mTurnLength = INITIAL_TURN_LENGTH;
         mTotalTurns = 0;
+        mGameCountdown = 0;
 
         mCurrentGameBall = null;
     }
