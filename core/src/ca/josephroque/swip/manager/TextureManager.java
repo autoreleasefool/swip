@@ -78,7 +78,7 @@ public final class TextureManager {
 
         // Creating object arrays for other textures
         sSystemIcons = new TextureRegion[SystemIcon.getSize()];
-        sGameCountdown = new TextureRegion[GameCountdownIcon.getSize()];
+        sGameCountdown = new TextureRegion[GameManager.GameCountdown.getSize()];
 
         loadGameTextures();
         loadMenuTextures();
@@ -282,11 +282,11 @@ public final class TextureManager {
     /**
      * Gets the texture of a particular icon for the initial game countdown.
      *
-     * @param icon position in the countdown
+     * @param item position in the countdown
      * @return the texture to draw
      */
-    public static TextureRegion getCountdownTexture(GameCountdownIcon icon) {
-        return sGameCountdown[icon.ordinal()];
+    public static TextureRegion getCountdownTexture(GameManager.GameCountdown item) {
+        return sGameCountdown[item.ordinal()];
     }
 
     /**
@@ -371,50 +371,6 @@ public final class TextureManager {
          */
         public static int getSize() {
             return SIZE;
-        }
-    }
-
-    /**
-     * Icons which represent the countdown before a game begins.
-     */
-    public enum GameCountdownIcon {
-        /** Icon which represents a 3 in the countdown. */
-        Three,
-        /** Icon which represents a 2 in the countdown. */
-        Two,
-        /** Icon which represents a 1 in the countdown. */
-        One,
-        /** Icon which represents GO! in the countdown. */
-        Go;
-
-        /** SIze of the enum. */
-        private static final int SIZE = GameCountdownIcon.values().length;
-
-        /**
-         * Gets the size of the enum.
-         *
-         * @return number of {@code GameCountdownIcon}s
-         */
-        public static int getSize() {
-            return SIZE;
-        }
-
-        /**
-         * Gets a countdown icon based on the total percentage of the countdown which has passed.
-         *
-         * @param percentage a percentage from 0 to 1
-         * @return the countdown icon
-         */
-        @SuppressWarnings("CheckStyle")
-        public static GameCountdownIcon getCountdownIcon(float percentage) {
-            if (percentage < 0.25f)
-                return Three;
-            else if (percentage < 0.5f)
-                return Two;
-            else if (percentage < 0.75f)
-                return One;
-            else
-                return Go;
         }
     }
 }

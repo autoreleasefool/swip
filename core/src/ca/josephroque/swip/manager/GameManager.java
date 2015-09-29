@@ -47,6 +47,8 @@ public class GameManager {
 
     /** Time that has passed since the game began≈, in seconds. */
     private float mGameCountdown;
+    /** The countdown item which was active in the last frame. */
+    private GameCountdown mLastCountdownItem;
 
     /** The ball being used by the game. */
     private GameBall mCurrentGameBall;
@@ -106,8 +108,8 @@ public class GameManager {
         Wall.initialize(screenWidth, screenHeight);
         mWallColors = new TextureManager.GameColor[Wall.NUMBER_OF_WALLS];
 
-        // Randomizing colors for initial walls
-        Wall.getRandomWallColors(mRandomNumberGenerator, mWallColors, false);
+        // Getting specific colors for initial walls
+        Wall.getDefaultWallColors(mWallColors, 0);
         mPrimaryWalls = new Wall[Wall.NUMBER_OF_WALLS];
         mSecondaryWalls = new Wall[Wall.NUMBER_OF_WALLS];
         for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
@@ -161,9 +163,18 @@ public class GameManager {
             startGame();
             if (mGameCallback != null)
                 mGameCallback.startGame();
-        } else if (mPauseButton.wasClicked(gameInput)) {
-            if (mGameCallback != null)
-                mGameCallback.pauseGame();
+        } else {
+            GameCountdown countdownItem = GameCountdown.getCountdownItem(mGameCountdown / TIME_UNTIL_GAME_STARTS);
+            if (mLastCountdownItem != null
+                    && mLastCountdownItem != countdownItem) {
+                replaceWallsAndBall(countdownItem);
+            }
+            mLastCountdownItem = countdownItem;
+
+            if (mPauseButton.wasClicked(gameInput)) {
+                if (mGameCallback != null)
+                    mGameCallback.pauseGame();
+            }
         }
 
         for (Wall wall : mPrimaryWalls)
@@ -244,11 +255,9 @@ public class GameManager {
                 mPauseButton.draw(spriteBatch);
                 float countdownPosition = mGameCountdown / TIME_UNTIL_GAME_STARTS;
                 TextureRegion countdownIcon
-                        = TextureManager.getCountdownTexture(TextureManager.GameCountdownIcon.getCountdownIcon(
-                        countdownPosition));
+                        = TextureManager.getCountdownTexture(GameCountdown.getCountdownItem(countdownPosition));
                 float sizeRatio = countdownIcon.getRegionWidth() / (float) countdownIcon.getRegionHeight();
-                spriteBatch.draw(TextureManager.getCountdownTexture(TextureManager.GameCountdownIcon.getCountdownIcon(
-                                countdownPosition)),
+                spriteBatch.draw(countdownIcon,
                         mScreenWidth / 2 - BasicBall.getDefaultBallRadius() * sizeRatio,
                         mScreenHeight / 2 - BasicBall.getDefaultBallRadius(),
                         BasicBall.getDefaultBallRadius() * 2 * sizeRatio,
@@ -285,10 +294,26 @@ public class GameManager {
      * Creates new colors for the walls and updates the color of the ball based on those colors.
      */
     private void replaceWallsAndBall() {
+        replaceWallsAndBall(null);
+    }
+
+    /**
+     * Creates new colors for the walls and updates the color of the ball based on those colors.
+     *
+     * @param countdown if not null, then the colors of the walls will be the four default colors in an orientation
+     * based on the {@code countdown.ordinal()}
+     */
+    private void replaceWallsAndBall(GameCountdown countdown) {
         // Creating the four walls
-        int wallPairFirstIndex = Wall.getRandomWallColors(mRandomNumberGenerator,
-                mWallColors,
-                mTotalTurns > Wall.TURNS_BEFORE_SAME_WALL_COLORS);
+        int wallPairFirstIndex;
+        if (countdown == null) {
+            wallPairFirstIndex = Wall.getRandomWallColors(mRandomNumberGenerator,
+                    mWallColors,
+                    mTotalTurns > Wall.TURNS_BEFORE_SAME_WALL_COLORS);
+        } else {
+            wallPairFirstIndex = Wall.getDefaultWallColors(mWallColors, countdown.ordinal());
+        }
+
         for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
             mSecondaryWalls[i].updateWallColor(mWallColors[i]);
             mSecondaryWalls[i].startTranslation();
@@ -383,5 +408,49 @@ public class GameManager {
          * @param finalScore score the user obtained
          */
         void endGame(int finalScore);
+    }
+
+    /**
+     * Icons which represent the countdown before a game begins.
+     */
+    public enum GameCountdown {
+        /** Item which represents a 3 in the countdown. */
+        Three,
+        /** Item which represents a 2 in the countdown. */
+        Two,
+        /** Item which represents a 1 in the countdown. */
+        One,
+        /** Item which represents GO! in the countdown. */
+        Go;
+
+        /** SIze of the enum. */
+        private static final int SIZE = GameCountdown.values().length;
+
+        /**
+         * Gets the size of the enum.
+         *
+         * @return number of {@code GameCountdown}s
+         */
+        public static int getSize() {
+            return SIZE;
+        }
+
+        /**
+         * Gets a countdown item based on the total percentage of the countdown which has passed.
+         *
+         * @param percentage a percentage from 0 to 1
+         * @return the countdown item
+         */
+        @SuppressWarnings("CheckStyle")
+        public static GameCountdown getCountdownItem(float percentage) {
+            if (percentage < 0.25f)
+                return Three;
+            else if (percentage < 0.5f)
+                return Two;
+            else if (percentage < 0.75f)
+                return One;
+            else
+                return Go;
+        }
     }
 }

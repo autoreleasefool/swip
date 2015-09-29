@@ -326,6 +326,36 @@ public class Wall
     }
 
     /**
+     * Assigns 4 colors to {@code wallColors} to use for drawing the walls. The colors are one of {@code GameColor.Red},
+     * {@code GameColor.Blue}, {@code GameColor.Green}, and {@code GameColor.Orange}, in an order depending on {@code
+     * iteration}.
+     *
+     * @param wallColors array to return colors. Must be of length 4
+     * @param iteration iteration of wall colors to use. Must be greater than or equal to 0.
+     * @return {@code -1}
+     */
+    public static int getDefaultWallColors(TextureManager.GameColor[] wallColors, int iteration) {
+        if (wallColors.length != NUMBER_OF_WALLS)
+            throw new IllegalArgumentException("color array must have length 4");
+        else if (iteration < 0)
+            throw new IllegalArgumentException("iteration must be greater than or equal to 0");
+
+        final TextureManager.GameColor[] defaultColors = {
+                TextureManager.GameColor.Red,
+                TextureManager.GameColor.Blue,
+                TextureManager.GameColor.Green,
+                TextureManager.GameColor.Orange
+        };
+
+        wallColors[Side.Top.ordinal()] = defaultColors[iteration++ % NUMBER_OF_WALLS];
+        wallColors[Side.Right.ordinal()] = defaultColors[iteration++ % NUMBER_OF_WALLS];
+        wallColors[Side.Bottom.ordinal()] = defaultColors[iteration++ % NUMBER_OF_WALLS];
+        wallColors[Side.Left.ordinal()] = defaultColors[iteration % NUMBER_OF_WALLS];
+
+        return -1;
+    }
+
+    /**
      * Sets the callback interface.
      *
      * @param listener instance of callback interface, or {@code null}
