@@ -1,5 +1,6 @@
 package ca.josephroque.swip.input;
 
+import ca.josephroque.swip.screen.GameScreen;
 import ca.josephroque.swip.util.Triplet;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector2;
@@ -29,11 +30,6 @@ public class GameInputProcessor
      * must be scaled up.
      */
     private static final int FINGER_VELOCITY_SCALE = 1000;
-
-    /** Width of the screen. */
-    private int mScreenWidth;
-    /** Height of the screen. */
-    private int mScreenHeight;
 
     /** Last recorded x location on screen of a finger. */
     private int mLastFingerX;
@@ -70,7 +66,7 @@ public class GameInputProcessor
      * @return y location of the user's first finger
      */
     public int getLastFingerY() {
-        return mScreenHeight - mLastFingerY;
+        return GameScreen.getScreenHeight() - mLastFingerY;
     }
 
     /**
@@ -117,17 +113,6 @@ public class GameInputProcessor
      */
     public void tick() {
         mFingerJustReleased = false;
-    }
-
-    /**
-     * Update the screen size.
-     *
-     * @param screenWidth width of the screen
-     * @param screenHeight height of the screen
-     */
-    public void resize(int screenWidth, int screenHeight) {
-        this.mScreenWidth = screenWidth;
-        this.mScreenHeight = screenHeight;
     }
 
     @Override

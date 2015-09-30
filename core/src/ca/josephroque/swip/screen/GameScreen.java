@@ -1,10 +1,7 @@
 package ca.josephroque.swip.screen;
 
-import ca.josephroque.swip.manager.GameManager;
-import ca.josephroque.swip.manager.MusicManager;
-import ca.josephroque.swip.manager.TextureManager;
+import ca.josephroque.swip.manager.*;
 import ca.josephroque.swip.input.GameInputProcessor;
-import ca.josephroque.swip.manager.MenuManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -34,9 +31,9 @@ public class GameScreen
     private GameInputProcessor mGameInput;
 
     /** Width of the screen. */
-    private int mScreenWidth;
+    private static int sScreenWidth;
     /** Height of the screen. */
-    private int mScreenHeight;
+    private static int sScreenHeight;
 
     /** Current state of the application. */
     private GameState mGameState;
@@ -120,13 +117,13 @@ public class GameScreen
 
     @Override
     public void show() {
-        mScreenWidth = Gdx.graphics.getWidth();
-        mScreenHeight = Gdx.graphics.getHeight();
+        sScreenWidth = Gdx.graphics.getWidth();
+        sScreenHeight = Gdx.graphics.getHeight();
 
         // Setting up the game rendering
         mPrimaryCamera = new OrthographicCamera();
-        mPrimaryCamera.translate(mScreenWidth / 2, mScreenHeight / 2);
-        mPrimaryCamera.setToOrtho(false, mScreenWidth, mScreenHeight);
+        mPrimaryCamera.translate(sScreenWidth / 2, sScreenHeight / 2);
+        mPrimaryCamera.setToOrtho(false, sScreenWidth, sScreenHeight);
         mPrimaryViewport = new ScreenViewport(mPrimaryCamera);
         mPrimaryViewport.apply();
 
@@ -139,11 +136,14 @@ public class GameScreen
         Gdx.input.setInputProcessor(mGameInput);
 
         // Setting up the game and menu
-        mGameManager = new GameManager(mGameCallback, mScreenWidth, mScreenHeight);
-        mMenuManager = new MenuManager(mMenuCallback, mScreenWidth, mScreenHeight);
+        mGameManager = new GameManager(mGameCallback);
+        mMenuManager = new MenuManager(mMenuCallback);
 
         // Loading music and sound effects
         MusicManager.initialize(MusicManager.BackgroundTrack.One);
+
+        // Loading fonts
+        FontManager.initialize();
 
         // Displaying the main menu
         setState(GameState.MainMenu);
@@ -167,9 +167,8 @@ public class GameScreen
 
     @Override
     public void resize(int width, int height) {
-        mScreenWidth = width;
-        mScreenHeight = height;
-        mGameInput.resize(width, height);
+        sScreenWidth = width;
+        sScreenHeight = height;
         mPrimaryViewport.update(width, height);
         mGameManager.resize(width, height);
     }
@@ -182,11 +181,30 @@ public class GameScreen
         mGameManager.dispose();
         mMenuManager.dispose();
         MusicManager.dispose();
+        FontManager.dispose();
 
         // Removes references
         mSpriteBatch = null;
         mGameManager = null;
         mMenuManager = null;
+    }
+
+    /**
+     * Gets the current width of the screen.
+     *
+     * @return width of the screen
+     */
+    public static int getScreenWidth() {
+        return sScreenWidth;
+    }
+
+    /**
+     * Gets the current height of the screen.
+     *
+     * @return height of the screen
+     */
+    public static int getScreenHeight() {
+        return sScreenHeight;
     }
 
     /**

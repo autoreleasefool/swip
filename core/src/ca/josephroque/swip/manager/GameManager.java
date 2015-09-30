@@ -34,11 +34,6 @@ public class GameManager {
     /** Size of the pause button relative to the screen. */
     private static final float PAUSE_BUTTON_SCALE = 0.15f;
 
-    /** Width of the screen. */
-    private int mScreenWidth;
-    /** Height of the screen. */
-    private int mScreenHeight;
-
     /** Generates random numbers for the game. */
     private final Random mRandomNumberGenerator = new Random();
 
@@ -97,15 +92,11 @@ public class GameManager {
      * Sets up a new game manager.
      *
      * @param callback instance of callback interface
-     * @param screenWidth width of the screen
-     * @param screenHeight height of the screen
      */
-    public GameManager(GameCallback callback, int screenWidth, int screenHeight) {
-        mScreenWidth = screenWidth;
-        mScreenHeight = screenHeight;
+    public GameManager(GameCallback callback) {
         mGameCallback = callback;
 
-        Wall.initialize(screenWidth, screenHeight);
+        Wall.initialize(GameScreen.getScreenWidth(), GameScreen.getScreenHeight());
         mWallColors = new TextureManager.GameColor[Wall.NUMBER_OF_WALLS];
 
         // Getting specific colors for initial walls
@@ -113,16 +104,17 @@ public class GameManager {
         mPrimaryWalls = new Wall[Wall.NUMBER_OF_WALLS];
         mSecondaryWalls = new Wall[Wall.NUMBER_OF_WALLS];
         for (int i = 0; i < Wall.NUMBER_OF_WALLS; i++) {
-            mPrimaryWalls[i] = new Wall(i, mWallColors[i], mScreenWidth, mScreenHeight);
+            mPrimaryWalls[i] = new Wall(i, mWallColors[i], GameScreen.getScreenWidth(), GameScreen.getScreenHeight());
             mPrimaryWalls[i].setTranslationCompleteListener(mWallTranslationListener);
-            mSecondaryWalls[i] = new Wall(i, mWallColors[i], mScreenWidth, mScreenHeight);
+            mSecondaryWalls[i] = new Wall(i, mWallColors[i], GameScreen.getScreenWidth(), GameScreen.getScreenHeight());
             mSecondaryWalls[i].setTranslationCompleteListener(mWallTranslationListener);
         }
 
-        final float pauseButtonSize = Math.min(mScreenWidth, mScreenHeight) * PAUSE_BUTTON_SCALE;
+        final float pauseButtonSize = Math.min(GameScreen.getScreenWidth(), GameScreen.getScreenHeight())
+                * PAUSE_BUTTON_SCALE;
         mPauseButton = new Button(TextureManager.getSystemIconTexture(TextureManager.SystemIcon.Pause),
                 0,
-                mScreenHeight - pauseButtonSize,
+                GameScreen.getScreenHeight() - pauseButtonSize,
                 pauseButtonSize,
                 pauseButtonSize);
     }
@@ -258,8 +250,8 @@ public class GameManager {
                         = TextureManager.getCountdownTexture(GameCountdown.getCountdownItem(countdownPosition));
                 float sizeRatio = countdownIcon.getRegionWidth() / (float) countdownIcon.getRegionHeight();
                 spriteBatch.draw(countdownIcon,
-                        mScreenWidth / 2 - BasicBall.getDefaultBallRadius() * sizeRatio,
-                        mScreenHeight / 2 - BasicBall.getDefaultBallRadius(),
+                        GameScreen.getScreenWidth() / 2 - BasicBall.getDefaultBallRadius() * sizeRatio,
+                        GameScreen.getScreenHeight() / 2 - BasicBall.getDefaultBallRadius(),
                         BasicBall.getDefaultBallRadius() * 2 * sizeRatio,
                         BasicBall.getDefaultBallRadius() * 2);
                 break;
@@ -285,8 +277,8 @@ public class GameManager {
      */
     public void startGame() {
         // Setting initial properties of entities
-        BasicBall.initialize(mScreenWidth, mScreenHeight);
-        Wall.initialize(mScreenWidth, mScreenHeight);
+        BasicBall.initialize(GameScreen.getScreenWidth(), GameScreen.getScreenHeight());
+        Wall.initialize(GameScreen.getScreenWidth(), GameScreen.getScreenHeight());
         replaceWallsAndBall();
     }
 
@@ -333,7 +325,10 @@ public class GameManager {
                 passableWalls[i] = mWallColors[randomWall].equals(mWallColors[i]);
         }
 
-        mCurrentGameBall = new GameBall(mWallColors[randomWall], passableWalls, mScreenWidth / 2, mScreenHeight / 2);
+        mCurrentGameBall = new GameBall(mWallColors[randomWall],
+                passableWalls,
+                GameScreen.getScreenWidth() / 2,
+                GameScreen.getScreenHeight() / 2);
         mCurrentGameBall.grow();
     }
 
@@ -365,20 +360,17 @@ public class GameManager {
     /**
      * Adjusts the size of the game objects to fit the new screen dimensions.
      *
-     * @param width new screen width
-     * @param height new screen height
+     * @param screenWidth width of the screen
+     * @param screenHeight height of the screen
      */
-    public void resize(int width, int height) {
-        mScreenWidth = width;
-        mScreenHeight = height;
-
+    public void resize(int screenWidth, int screenHeight) {
         // Resizing entities on screen
         for (Wall wall : mPrimaryWalls)
-            wall.resize(width, height);
+            wall.resize(screenWidth, screenHeight);
         for (Wall wall : mSecondaryWalls)
-            wall.resize(width, height);
+            wall.resize(screenWidth, screenHeight);
         if (mCurrentGameBall != null)
-            mCurrentGameBall.resize(width, height);
+            mCurrentGameBall.resize(screenWidth, screenHeight);
     }
 
     /**
