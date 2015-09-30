@@ -1,7 +1,11 @@
 package ca.josephroque.swip.screen;
 
-import ca.josephroque.swip.manager.*;
 import ca.josephroque.swip.input.GameInputProcessor;
+import ca.josephroque.swip.manager.FontManager;
+import ca.josephroque.swip.manager.GameManager;
+import ca.josephroque.swip.manager.MenuManager;
+import ca.josephroque.swip.manager.MusicManager;
+import ca.josephroque.swip.manager.TextureManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -10,8 +14,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
- * Provides default methods for creating a {@link com.badlogic.gdx.Screen}.
+ * Provides high-level game operations.
  */
 public class GameScreen
         implements Screen {
@@ -19,6 +25,14 @@ public class GameScreen
     /** Identifies output from this class in the logcat. */
     @SuppressWarnings("unused")
     private static final String TAG = "GameScreen";
+
+    /** Width of the screen. */
+    private static int sScreenWidth;
+    /** Height of the screen. */
+    private static int sScreenHeight;
+
+    /** Indicates if the assets have been loaded. */
+    private static final AtomicBoolean ASSETS_LOADED = new AtomicBoolean(false);
 
     /** Allows rendering of graphics on the screen. */
     private SpriteBatch mSpriteBatch;
@@ -29,11 +43,6 @@ public class GameScreen
 
     /** Handles gesture input events. */
     private GameInputProcessor mGameInput;
-
-    /** Width of the screen. */
-    private static int sScreenWidth;
-    /** Height of the screen. */
-    private static int sScreenHeight;
 
     /** Current state of the application. */
     private GameState mGameState;
@@ -129,7 +138,6 @@ public class GameScreen
 
         // Preparing UI objects
         mSpriteBatch = new SpriteBatch();
-        TextureManager.initialize();
 
         // Creating gesture handler
         mGameInput = new GameInputProcessor();
@@ -139,11 +147,14 @@ public class GameScreen
         mGameManager = new GameManager(mGameCallback);
         mMenuManager = new MenuManager(mMenuCallback);
 
-        // Loading music and sound effects
-        MusicManager.initialize(MusicManager.BackgroundTrack.One);
-
-        // Loading fonts
-        FontManager.initialize();
+        synchronized (ASSETS_LOADED) {
+            if (!ASSETS_LOADED.get()) {
+                TextureManager.initialize();
+                MusicManager.initialize(MusicManager.BackgroundTrack.One);
+                FontManager.initialize();
+                ASSETS_LOADED.set(true);
+            }
+        }
 
         // Displaying the main menu
         setState(GameState.MainMenu);
@@ -175,6 +186,8 @@ public class GameScreen
 
     @Override
     public void dispose() {
+        ASSETS_LOADED.set(false);
+
         // Disposes resources being used by instances
         mSpriteBatch.dispose();
         TextureManager.dispose();
@@ -187,24 +200,6 @@ public class GameScreen
         mSpriteBatch = null;
         mGameManager = null;
         mMenuManager = null;
-    }
-
-    /**
-     * Gets the current width of the screen.
-     *
-     * @return width of the screen
-     */
-    public static int getScreenWidth() {
-        return sScreenWidth;
-    }
-
-    /**
-     * Gets the current height of the screen.
-     *
-     * @return height of the screen
-     */
-    public static int getScreenHeight() {
-        return sScreenHeight;
     }
 
     /**
@@ -304,6 +299,46 @@ public class GameScreen
     }
 
     /**
+     * Loads the assets being used for the games.
+     *
+     * @param callback invokes callback methods when preload completes
+     */
+    public static void preloadAssets(final PreloadCallback callback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (ASSETS_LOADED) {
+                    if (!ASSETS_LOADED.get()) {
+                        TextureManager.initialize();
+                        MusicManager.initialize(MusicManager.BackgroundTrack.One);
+                        FontManager.initialize();
+                        ASSETS_LOADED.set(true);
+                    }
+                }
+                callback.preloadCompleted();
+            }
+        }).start();
+    }
+
+    /**
+     * Gets the current width of the screen.
+     *
+     * @return width of the screen
+     */
+    public static int getScreenWidth() {
+        return sScreenWidth;
+    }
+
+    /**
+     * Gets the current height of the screen.
+     *
+     * @return height of the screen
+     */
+    public static int getScreenHeight() {
+        return sScreenHeight;
+    }
+
+    /**
      * Possible states of the application.
      */
     public enum GameState {
@@ -317,5 +352,16 @@ public class GameScreen
         GamePaused,
         /** Represents the game being over. */
         Ended,
+    }
+
+    /**
+     * Callback interface for when the loading of assets is completed.
+     */
+    public interface PreloadCallback {
+
+        /**
+         * Invoked when the {@code GameScreen} assets have finished loading.
+         */
+        void preloadCompleted();
     }
 }
