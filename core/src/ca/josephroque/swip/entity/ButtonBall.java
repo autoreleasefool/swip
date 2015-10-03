@@ -17,7 +17,7 @@ public class ButtonBall
     private static final String TAG = "ButtonBall";
 
     /** Menu action which clicking this ball invokes. */
-    private MenuManager.MenuBallOptions mMenuOption;
+    private MenuManager.MenuBallOption mMenuOption;
     /** Icon of the button. */
     private TextureRegion mButtonIcon;
 
@@ -30,7 +30,7 @@ public class ButtonBall
      * @param x starting horizontal position of the ball
      * @param y starting vertical position of the ball
      */
-    public ButtonBall(MenuManager.MenuBallOptions option,
+    public ButtonBall(MenuManager.MenuBallOption option,
                       TextureManager.GameColor ballColor,
                       TextureRegion buttonIcon,
                       float x,
@@ -77,7 +77,7 @@ public class ButtonBall
      *
      * @return menu option
      */
-    public MenuManager.MenuBallOptions getMenuOption() {
+    public MenuManager.MenuBallOption getMenuOption() {
         return mMenuOption;
     }
 }

@@ -33,16 +33,16 @@ public class MenuManager {
                 if (buttonBall == ball) {
                     switch (buttonBall.getMenuOption()) {
                         case MusicOn:
-                            mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].grow();
+                            mMenuOptionBalls[MenuBallOption.MusicOff.ordinal()].grow();
                             break;
                         case MusicOff:
-                            mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].grow();
+                            mMenuOptionBalls[MenuBallOption.MusicOn.ordinal()].grow();
                             break;
                         case SoundEffectsOn:
-                            mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].grow();
+                            mMenuOptionBalls[MenuBallOption.SoundEffectsOff.ordinal()].grow();
                             break;
                         case SoundEffectsOff:
-                            mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].grow();
+                            mMenuOptionBalls[MenuBallOption.SoundEffectsOn.ordinal()].grow();
                             break;
                         default:
                             throw new IllegalArgumentException("Invalid menu option");
@@ -66,29 +66,29 @@ public class MenuManager {
         mCallback = callback;
 
         BasicBall.initialize(GameScreen.getScreenWidth(), GameScreen.getScreenHeight());
-        mMenuOptionBalls = new ButtonBall[MenuBallOptions.getSize()];
-        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()]
-                = new ButtonBall(MenuBallOptions.MusicOn,
+        mMenuOptionBalls = new ButtonBall[MenuBallOption.getSize()];
+        mMenuOptionBalls[MenuBallOption.MusicOn.ordinal()]
+                = new ButtonBall(MenuBallOption.MusicOn,
                 TextureManager.GameColor.Green,
-                TextureManager.getMenuButtonIconTexture(MenuBallOptions.MusicOn),
+                TextureManager.getMenuButtonIconTexture(MenuBallOption.MusicOn),
                 GameScreen.getScreenWidth() / 2 - BasicBall.getDefaultBallRadius() * 2,
                 GameScreen.getScreenHeight() / 2);
-        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()]
-                = new ButtonBall(MenuBallOptions.MusicOff,
+        mMenuOptionBalls[MenuBallOption.MusicOff.ordinal()]
+                = new ButtonBall(MenuBallOption.MusicOff,
                 TextureManager.GameColor.Red,
-                TextureManager.getMenuButtonIconTexture(MenuBallOptions.MusicOff),
+                TextureManager.getMenuButtonIconTexture(MenuBallOption.MusicOff),
                 GameScreen.getScreenWidth() / 2 - BasicBall.getDefaultBallRadius() * 2,
                 GameScreen.getScreenHeight() / 2);
-        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()]
-                = new ButtonBall(MenuBallOptions.SoundEffectsOn,
+        mMenuOptionBalls[MenuBallOption.SoundEffectsOn.ordinal()]
+                = new ButtonBall(MenuBallOption.SoundEffectsOn,
                 TextureManager.GameColor.Green,
-                TextureManager.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOn),
+                TextureManager.getMenuButtonIconTexture(MenuBallOption.SoundEffectsOn),
                 GameScreen.getScreenWidth() / 2 + BasicBall.getDefaultBallRadius() * 2,
                 GameScreen.getScreenHeight() / 2);
-        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()]
-                = new ButtonBall(MenuBallOptions.SoundEffectsOff,
+        mMenuOptionBalls[MenuBallOption.SoundEffectsOff.ordinal()]
+                = new ButtonBall(MenuBallOption.SoundEffectsOff,
                 TextureManager.GameColor.Red,
-                TextureManager.getMenuButtonIconTexture(MenuBallOptions.SoundEffectsOff),
+                TextureManager.getMenuButtonIconTexture(MenuBallOption.SoundEffectsOff),
                 GameScreen.getScreenWidth() / 2 + BasicBall.getDefaultBallRadius() * 2,
                 GameScreen.getScreenHeight() / 2);
         for (ButtonBall ball : mMenuOptionBalls)
@@ -115,22 +115,22 @@ public class MenuManager {
                 optionSelected = true;
                 switch (option.getMenuOption()) {
                     case MusicOn:
-                        mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].shrink();
+                        mMenuOptionBalls[MenuBallOption.MusicOn.ordinal()].shrink();
                         if (mCallback != null)
                             mCallback.setMusicEnabled(false);
                         break;
                     case MusicOff:
-                        mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].shrink();
+                        mMenuOptionBalls[MenuBallOption.MusicOff.ordinal()].shrink();
                         if (mCallback != null)
                             mCallback.setMusicEnabled(true);
                         break;
                     case SoundEffectsOn:
-                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].shrink();
+                        mMenuOptionBalls[MenuBallOption.SoundEffectsOn.ordinal()].shrink();
                         if (mCallback != null)
                             mCallback.setSoundEffectsEnabled(false);
                         break;
                     case SoundEffectsOff:
-                        mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].shrink();
+                        mMenuOptionBalls[MenuBallOption.SoundEffectsOff.ordinal()].shrink();
                         if (mCallback != null)
                             mCallback.setSoundEffectsEnabled(true);
                         break;
@@ -176,14 +176,14 @@ public class MenuManager {
             option.hide();
 
         if (MusicManager.isMusicPlaybackEnabled())
-            mMenuOptionBalls[MenuBallOptions.MusicOn.ordinal()].grow();
+            mMenuOptionBalls[MenuBallOption.MusicOn.ordinal()].grow();
         else
-            mMenuOptionBalls[MenuBallOptions.MusicOff.ordinal()].grow();
+            mMenuOptionBalls[MenuBallOption.MusicOff.ordinal()].grow();
 
         if (MusicManager.isSoundEffectPlaybackEnabled())
-            mMenuOptionBalls[MenuBallOptions.SoundEffectsOn.ordinal()].grow();
+            mMenuOptionBalls[MenuBallOption.SoundEffectsOn.ordinal()].grow();
         else
-            mMenuOptionBalls[MenuBallOptions.SoundEffectsOff.ordinal()].grow();
+            mMenuOptionBalls[MenuBallOption.SoundEffectsOff.ordinal()].grow();
     }
 
     /**
@@ -196,7 +196,7 @@ public class MenuManager {
     /**
      * Available options for the ball menu items.
      */
-    public enum MenuBallOptions {
+    public enum MenuBallOption {
         /** Represents the menu option for when music is enabled. */
         MusicOn,
         /** Represents the menu option for when music is disabled. */
@@ -207,12 +207,12 @@ public class MenuManager {
         SoundEffectsOff;
 
         /** Size of the enum. */
-        private static final int SIZE = MenuBallOptions.values().length;
+        private static final int SIZE = MenuBallOption.values().length;
 
         /**
          * Gets the size of the enum.
          *
-         * @return number of {@code MenuBallOptions}
+         * @return number of {@code MenuBallOption}
          */
         public static int getSize() {
             return SIZE;

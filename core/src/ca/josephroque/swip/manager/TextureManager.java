@@ -5,6 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
+import java.util.HashMap;
+
 /**
  * Retrieves textures for displaying games objects.
  */
@@ -14,43 +16,21 @@ public final class TextureManager {
     @SuppressWarnings("unused")
     private static final String TAG = "TextureManager";
 
-    /** Size of icon assets. */
-    private static final int ICON_SIZE = 162;
-    /** Number of columns icons are organized into. */
-    private static final int ICON_COLUMNS = 6;
-
     /** Primary texture for game objects. */
     private static Texture sGameTexture;
     /** Primary texture for menu objects. */
     private static Texture sMenuTexture;
 
-    /** Texture regions for left walls, derived from {@code sGameTexture}. */
-    private static TextureRegion[] sLeftWalls;
-    /** Texture regions for top walls, derived from {@code sGameTexture}. */
-    private static TextureRegion[] sTopWalls;
-    /** Texture regions for right walls, derived from {@code sGameTexture}. */
-    private static TextureRegion[] sRightWalls;
-    /** Texture regions for bottom walls, derived from {@code sGameTexture}. */
-    private static TextureRegion[] sBottomWalls;
-    /** Texture regions for left wall edges, derived from {@code sGameTexture}. */
-    private static TextureRegion[][] sLeftWallEdges;
-    /** Texture regions for top wall edges, derived from {@code sGameTexture}. */
-    private static TextureRegion[][] sTopWallEdges;
-    /** Texture regions for right wall edges, derived from {@code sGameTexture}. */
-    private static TextureRegion[][] sRightWallEdges;
-    /** Texture regions for bottom wall edges, derived from {@code sGameTexture}. */
-    private static TextureRegion[][] sBottomWallEdges;
-    /** Texture regions for balls, derived from {@code sGameTexture}. */
-    private static TextureRegion[] sBalls;
-
-    /** Texture regions for balls in the main menu. */
-    private static TextureRegion[] sMenuOptionBalls;
-
-    /** Texture regions for system icons. */
-    private static TextureRegion[] sSystemIcons;
-
-    /** Texture regions for the countdown when a new game begins. */
-    private static TextureRegion[] sGameCountdown;
+    /** A map from {@code Wall.Side} and {@code TextureManager.Color} values to texture regions. */
+    private static HashMap<String, TextureRegion> sWallTextures;
+    /** A map from {@code TextureManager.Color} values to texture regions. */
+    private static HashMap<String, TextureRegion> sBallTextures;
+    /** A map from {@code GameManager.GameCountdown} values to texture regions. */
+    private static HashMap<String, TextureRegion> sGameCountdownTextures;
+    /** A map from {@code MenuManager.MenuBallOption} values to texture regions. */
+    private static HashMap<String, TextureRegion> sMenuIcons;
+    /** A map from {@code TextureManager.SystemIcon} values to texture regions. */
+    private static HashMap<String, TextureRegion> sSystemIcons;
 
     /** Potential colors of walls in the game. */
     public static final GameColor[] GAME_COLORS = GameColor.values();
@@ -62,129 +42,83 @@ public final class TextureManager {
         sGameTexture = new Texture(Gdx.files.internal("game_spritesheet.png"));
         sMenuTexture = new Texture(Gdx.files.internal("menu_spritesheet.png"));
 
-        // Creating object arrays for game textures
-        sLeftWalls = new TextureRegion[GameColor.getSize()];
-        sTopWalls = new TextureRegion[GameColor.getSize()];
-        sRightWalls = new TextureRegion[GameColor.getSize()];
-        sBottomWalls = new TextureRegion[GameColor.getSize()];
-        sBalls = new TextureRegion[GameColor.getSize()];
-        sLeftWallEdges = new TextureRegion[GameColor.getSize()][2];
-        sTopWallEdges = new TextureRegion[GameColor.getSize()][2];
-        sRightWallEdges = new TextureRegion[GameColor.getSize()][2];
-        sBottomWallEdges = new TextureRegion[GameColor.getSize()][2];
-
-        // Creating object arrays for menu textures
-        sMenuOptionBalls = new TextureRegion[MenuManager.MenuBallOptions.getSize()];
-
-        // Creating object arrays for other textures
-        sSystemIcons = new TextureRegion[SystemIcon.getSize()];
-        sGameCountdown = new TextureRegion[GameManager.GameCountdown.getSize()];
-
-        loadGameTextures();
-        loadMenuTextures();
-        loadOtherTextures();
+        prepareGameTextureRegions();
+        prepareMenuTextureRegions();
     }
 
     /**
-     * Loads textures for the game.
+     * Loads the textures for game objects.
      */
-    private static void loadGameTextures() {
-        final int entitySize = 162;
-        final int topWallX = 324;
-        final int rightWallX = 162;
-        final int bottomWallX = 486;
-        final int ballX = 3286;
-        final int verticalWallHeight = 1920;
-        final int horizontalWallHeight = 1080;
-        final int bottomEdgeVerticalWallYOffset = 1758;
-        final int bottomEdgeHorizontalWallYOffset = 918;
+    private static void prepareGameTextureRegions() {
+        sWallTextures = parseTextureProperties(sGameTexture, loadTextureProperties("walls.txt"));
+        sBallTextures = parseTextureProperties(sGameTexture, loadTextureProperties("balls.txt"));
+        sGameCountdownTextures = parseTextureProperties(sMenuTexture, loadTextureProperties("countdown.txt"));
+    }
 
-        for (int i = 0; i < GameColor.getSize(); i++) {
-            sLeftWalls[i] = new TextureRegion(sGameTexture,
-                    entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
-                    entitySize + verticalWallHeight * (i / (GameColor.getSize() / 2)),
-                    entitySize,
-                    verticalWallHeight - entitySize * 2);
-            sTopWalls[i] = new TextureRegion(sGameTexture,
-                    topWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
-                    entitySize + verticalWallHeight * (i / (GameColor.getSize() / 2)),
-                    entitySize,
-                    horizontalWallHeight - entitySize * 2);
-            sRightWalls[i] = new TextureRegion(sGameTexture,
-                    rightWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
-                    entitySize + verticalWallHeight * (i / (GameColor.getSize() / 2)),
-                    entitySize,
-                    verticalWallHeight - entitySize * 2);
-            sBottomWalls[i] = new TextureRegion(sGameTexture,
-                    bottomWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
-                    entitySize + verticalWallHeight * (i / (GameColor.getSize() / 2)),
-                    entitySize,
-                    horizontalWallHeight - entitySize * 2);
-            sBalls[i] = new TextureRegion(sGameTexture,
-                    ballX + entitySize * (i % (GameColor.getSize() / 2)),
-                    entitySize * (i / (GameColor.getSize() / 2)),
-                    entitySize,
-                    entitySize);
-            for (int j = 0; j < 2; j++) {
-                sLeftWallEdges[i][j] = new TextureRegion(sGameTexture,
-                        entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
-                        bottomEdgeVerticalWallYOffset * j + verticalWallHeight * (i / (GameColor.getSize() / 2)),
-                        entitySize,
-                        entitySize);
-                sRightWallEdges[i][j] = new TextureRegion(sGameTexture,
-                        rightWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
-                        bottomEdgeVerticalWallYOffset * j + verticalWallHeight * (i / (GameColor.getSize() / 2)),
-                        entitySize,
-                        entitySize);
-                sTopWallEdges[i][j] = new TextureRegion(sGameTexture,
-                        topWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
-                        bottomEdgeHorizontalWallYOffset * j + verticalWallHeight * (i / (GameColor.getSize() / 2)),
-                        entitySize,
-                        entitySize);
-                sBottomWallEdges[i][j] = new TextureRegion(sGameTexture,
-                        bottomWallX + entitySize * Wall.NUMBER_OF_WALLS * (i % (GameColor.getSize() / 2)),
-                        bottomEdgeHorizontalWallYOffset * j + verticalWallHeight * (i / (GameColor.getSize() / 2)),
-                        entitySize,
-                        entitySize);
+    /**
+     * Loads the textures for menu objects.
+     */
+    private static void prepareMenuTextureRegions() {
+        sMenuIcons = parseTextureProperties(sMenuTexture, loadTextureProperties("menu.txt"));
+        sSystemIcons = parseTextureProperties(sMenuTexture, loadTextureProperties("system.txt"));
+    }
+
+    /**
+     * Creates a {@code HashMap} of {@code TextureRegion} objects by using {@code properties} and {@code texture} to
+     * create the instances, then mapping them to the keys provided in {@code properties}.
+     *
+     * @param texture texture source for {@code TextureRegion}
+     * @param properties properties to create {@code TextureRegion}
+     * @return a mapping from the keys in {@code properties} to a new set of {@code TextureRegion} objects
+     */
+    private static HashMap<String, TextureRegion> parseTextureProperties(
+            Texture texture,
+            HashMap<String, TextureProperties> properties) {
+        HashMap<String, TextureRegion> textureRegions = new HashMap<>();
+        for (String key : properties.keySet()) {
+            TextureProperties textureProperties = properties.get(key);
+            TextureRegion region = new TextureRegion(texture,
+                    textureProperties.mX,
+                    textureProperties.mY,
+                    textureProperties.mWidth,
+                    textureProperties.mHeight);
+            textureRegions.put(key, region);
+        }
+
+        return textureRegions;
+    }
+
+    /**
+     * Opens the file defined by {@code fileHandle} and parses its contents to create a {@code HashMap} of {@code
+     * TextureProperties} objects.
+     *
+     * @param fileHandle file to parse
+     * @return a mapping from the first word on each line to a {@code TextureProperties} object created using the rest
+     * of the information on the line in the file
+     */
+    private static HashMap<String, TextureProperties> loadTextureProperties(String fileHandle) {
+        final byte propertyName = 0;
+        final byte propertyX = 1;
+        final byte propertyY = 2;
+        final byte propertyWidth = 3;
+        final byte propertyHeight = 4;
+
+        final String rawFile = Gdx.files.internal("texture_properties/" + fileHandle).readString();
+        final String[] lines = rawFile.split("\n");
+        HashMap<String, TextureProperties> properties = new HashMap<>();
+
+        for (String line : lines) {
+            if (line != null && line.length() > 0 && line.charAt(0) != '#') {
+                String[] rawProperties = line.split("\\s+");
+                TextureProperties textureProperties = new TextureProperties(Integer.parseInt(rawProperties[propertyX]),
+                        Integer.parseInt(rawProperties[propertyY]),
+                        Integer.parseInt(rawProperties[propertyWidth]),
+                        Integer.parseInt(rawProperties[propertyHeight]));
+                properties.put(rawProperties[propertyName], textureProperties);
             }
         }
-    }
 
-    /**
-     * Loads textures for the menu.
-     */
-    private static void loadMenuTextures() {
-        for (int i = 0; i < sMenuOptionBalls.length; i++)
-            sMenuOptionBalls[i] = new TextureRegion(sMenuTexture, ICON_SIZE * i, 0, ICON_SIZE, ICON_SIZE);
-    }
-
-    /**
-     * Loads other textures for the application.
-     */
-    private static void loadOtherTextures() {
-        for (int i = 0; i < sSystemIcons.length; i++) {
-            sSystemIcons[i] = new TextureRegion(sMenuTexture,
-                    ICON_SIZE * (i % ICON_COLUMNS),
-                    ICON_SIZE * (i / ICON_COLUMNS) + ICON_SIZE,
-                    ICON_SIZE,
-                    ICON_SIZE);
-        }
-
-        final int left = 0;
-        final int top = 1;
-        final int width = 2;
-        final int height = 3;
-
-        String countdownIconDefinitions = Gdx.files.internal("config/countdown_icons.txt").readString();
-        String[] countdownIcons = countdownIconDefinitions.split("\n");
-        for (int i = 0; i < sGameCountdown.length; i++) {
-            String[] rect = countdownIcons[i].split(" ");
-            sGameCountdown[i] = new TextureRegion(sMenuTexture,
-                    Integer.parseInt(rect[left]),
-                    Integer.parseInt(rect[top]),
-                    Integer.parseInt(rect[width]),
-                    Integer.parseInt(rect[height]));
-        }
+        return properties;
     }
 
     /**
@@ -195,25 +129,7 @@ public final class TextureManager {
      * @return the texture to draw
      */
     public static TextureRegion getWallTexture(Wall.Side side, GameColor color) {
-        final TextureRegion[] source;
-        switch (side) {
-            case Left:
-                source = sLeftWalls;
-                break;
-            case Top:
-                source = sTopWalls;
-                break;
-            case Right:
-                source = sRightWalls;
-                break;
-            case Bottom:
-                source = sBottomWalls;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid wall side.");
-        }
-
-        return source[color.ordinal()];
+        return sWallTextures.get(color.name() + side.name());
     }
 
     /**
@@ -226,27 +142,9 @@ public final class TextureManager {
      * @return the texture to draw
      */
     public static TextureRegion getWallEdge(Wall.Side side, GameColor color, boolean topEdge) {
-        final TextureRegion[][] source;
-        switch (side) {
-            case Left:
-                source = sLeftWallEdges;
-                break;
-            case Top:
-                source = sTopWallEdges;
-                break;
-            case Right:
-                source = sRightWallEdges;
-                break;
-            case Bottom:
-                source = sBottomWallEdges;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid wall side.");
-        }
-
-        return source[color.ordinal()][(topEdge)
-                ? 0
-                : 1];
+        return sWallTextures.get(color.name() + side.name() + ((topEdge)
+                ? "Top"
+                : "Bottom") + "Edge");
     }
 
     /**
@@ -256,7 +154,7 @@ public final class TextureManager {
      * @return icon texture
      */
     public static TextureRegion getSystemIconTexture(SystemIcon icon) {
-        return sSystemIcons[icon.ordinal()];
+        return sSystemIcons.get(icon.name());
     }
 
     /**
@@ -265,8 +163,8 @@ public final class TextureManager {
      * @param option main menu option
      * @return icon texture
      */
-    public static TextureRegion getMenuButtonIconTexture(MenuManager.MenuBallOptions option) {
-        return sMenuOptionBalls[option.ordinal()];
+    public static TextureRegion getMenuButtonIconTexture(MenuManager.MenuBallOption option) {
+        return sMenuIcons.get(option.name());
     }
 
     /**
@@ -276,7 +174,7 @@ public final class TextureManager {
      * @return the texture to draw
      */
     public static TextureRegion getBallTexture(GameColor color) {
-        return sBalls[color.ordinal()];
+        return sBallTextures.get(color.name());
     }
 
     /**
@@ -286,24 +184,16 @@ public final class TextureManager {
      * @return the texture to draw
      */
     public static TextureRegion getCountdownTexture(GameManager.GameCountdown item) {
-        return sGameCountdown[item.ordinal()];
+        return sGameCountdownTextures.get(item.name());
     }
 
     /**
      * Frees resources used by textures in this class.
      */
     public static void dispose() {
-        sBalls = null;
-        sLeftWalls = null;
-        sTopWalls = null;
-        sRightWalls = null;
-        sBottomWalls = null;
-        sLeftWallEdges = null;
-        sTopWallEdges = null;
-        sRightWallEdges = null;
-        sBottomWallEdges = null;
-        sMenuOptionBalls = null;
-        sGameCountdown = null;
+        sWallTextures = null;
+        sBallTextures = null;
+        sGameCountdownTextures = null;
 
         sGameTexture.dispose();
         sMenuTexture.dispose();
@@ -314,6 +204,36 @@ public final class TextureManager {
      */
     private TextureManager() {
         // does nothing
+    }
+
+    /**
+     * Declares certain basic properties to construct a {@code TextureRegion}.
+     */
+    public static final class TextureProperties {
+
+        /** Left edge of the texture. */
+        private int mX;
+        /** Top edge of the texture. */
+        private int mY;
+        /** Width of the texture. */
+        private int mWidth;
+        /** Height of the texture. */
+        private int mHeight;
+
+        /**
+         * Creates a new {@code TextureProperties} using the provided parameters as member variables.
+         *
+         * @param x left edge of the texture
+         * @param y top edge of the texture
+         * @param width width of the texture
+         * @param height height of the texture
+         */
+        public TextureProperties(int x, int y, int width, int height) {
+            this.mX = x;
+            this.mY = y;
+            this.mWidth = width;
+            this.mHeight = height;
+        }
     }
 
     /**
@@ -359,18 +279,6 @@ public final class TextureManager {
      */
     public enum SystemIcon {
         /** Icon which represents a pause button. */
-        Pause;
-
-        /** Size of the enum. */
-        private static final int SIZE = SystemIcon.values().length;
-
-        /**
-         * Gets the size of the enum.
-         *
-         * @return number of {@code SystemIcon}s
-         */
-        public static int getSize() {
-            return SIZE;
-        }
+        Pause
     }
 }

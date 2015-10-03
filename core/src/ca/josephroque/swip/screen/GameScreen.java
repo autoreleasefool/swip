@@ -148,7 +148,9 @@ public class GameScreen
         mMenuManager = new MenuManager(mMenuCallback);
 
         synchronized (ASSETS_LOADED) {
+            Gdx.app.debug(TAG, "Show - Checking if assets loaded: " + ASSETS_LOADED.get());
             if (!ASSETS_LOADED.get()) {
+                Gdx.app.debug(TAG, "Show - assets not loaded, loading.");
                 TextureManager.initialize();
                 MusicManager.initialize(MusicManager.BackgroundTrack.One);
                 FontManager.initialize();
@@ -308,7 +310,9 @@ public class GameScreen
             @Override
             public void run() {
                 synchronized (ASSETS_LOADED) {
+                    Gdx.app.debug(TAG, "Preload - Checking if assets loaded: " + ASSETS_LOADED.get());
                     if (!ASSETS_LOADED.get()) {
+                        Gdx.app.debug(TAG, "Preload - Assets not loaded.");
                         TextureManager.initialize();
                         MusicManager.initialize(MusicManager.BackgroundTrack.One);
                         FontManager.initialize();
