@@ -15,6 +15,8 @@ public class MenuManager {
     @SuppressWarnings("unused")
     private static final String TAG = "MenuManager";
 
+    /** Handles loading and unloading of textures. */
+    private TextureManager mTextureManager;
     /** Instance of callback interface. */
     private MenuCallback mCallback;
 
@@ -61,34 +63,36 @@ public class MenuManager {
      * Sets up a new main menu.
      *
      * @param callback instance of callback interface
+     * @param textureManager to get textures to draw
      */
-    public MenuManager(MenuCallback callback) {
+    public MenuManager(MenuCallback callback, TextureManager textureManager) {
         mCallback = callback;
+        mTextureManager = textureManager;
 
         BasicBall.initialize(GameScreen.getScreenWidth(), GameScreen.getScreenHeight());
         mMenuOptionBalls = new ButtonBall[MenuBallOption.getSize()];
         mMenuOptionBalls[MenuBallOption.MusicOn.ordinal()]
                 = new ButtonBall(MenuBallOption.MusicOn,
                 TextureManager.GameColor.Green,
-                TextureManager.getMenuButtonIconTexture(MenuBallOption.MusicOn),
+                textureManager.getMenuButtonIconTexture(MenuBallOption.MusicOn),
                 GameScreen.getScreenWidth() / 2 - BasicBall.getDefaultBallRadius() * 2,
                 GameScreen.getScreenHeight() / 2);
         mMenuOptionBalls[MenuBallOption.MusicOff.ordinal()]
                 = new ButtonBall(MenuBallOption.MusicOff,
                 TextureManager.GameColor.Red,
-                TextureManager.getMenuButtonIconTexture(MenuBallOption.MusicOff),
+                textureManager.getMenuButtonIconTexture(MenuBallOption.MusicOff),
                 GameScreen.getScreenWidth() / 2 - BasicBall.getDefaultBallRadius() * 2,
                 GameScreen.getScreenHeight() / 2);
         mMenuOptionBalls[MenuBallOption.SoundEffectsOn.ordinal()]
                 = new ButtonBall(MenuBallOption.SoundEffectsOn,
                 TextureManager.GameColor.Green,
-                TextureManager.getMenuButtonIconTexture(MenuBallOption.SoundEffectsOn),
+                textureManager.getMenuButtonIconTexture(MenuBallOption.SoundEffectsOn),
                 GameScreen.getScreenWidth() / 2 + BasicBall.getDefaultBallRadius() * 2,
                 GameScreen.getScreenHeight() / 2);
         mMenuOptionBalls[MenuBallOption.SoundEffectsOff.ordinal()]
                 = new ButtonBall(MenuBallOption.SoundEffectsOff,
                 TextureManager.GameColor.Red,
-                TextureManager.getMenuButtonIconTexture(MenuBallOption.SoundEffectsOff),
+                textureManager.getMenuButtonIconTexture(MenuBallOption.SoundEffectsOff),
                 GameScreen.getScreenWidth() / 2 + BasicBall.getDefaultBallRadius() * 2,
                 GameScreen.getScreenHeight() / 2);
         for (ButtonBall ball : mMenuOptionBalls)
@@ -162,7 +166,7 @@ public class MenuManager {
      */
     public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         for (ButtonBall option : mMenuOptionBalls)
-            option.draw(spriteBatch);
+            option.draw(spriteBatch, mTextureManager);
 
         FontManager.getDefaultFont()
                 .draw(spriteBatch, "Tap to begin", GameScreen.getScreenWidth() / 2, GameScreen.getScreenHeight() / 2);

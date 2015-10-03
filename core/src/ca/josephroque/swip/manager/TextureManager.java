@@ -17,20 +17,20 @@ public final class TextureManager {
     private static final String TAG = "TextureManager";
 
     /** Primary texture for game objects. */
-    private static Texture sGameTexture;
+    private Texture mGameTexture;
     /** Primary texture for menu objects. */
-    private static Texture sMenuTexture;
+    private Texture mMenuTexture;
 
     /** A map from {@code Wall.Side} and {@code TextureManager.Color} values to texture regions. */
-    private static HashMap<String, TextureRegion> sWallTextures;
+    private HashMap<String, TextureRegion> mWallTextures;
     /** A map from {@code TextureManager.Color} values to texture regions. */
-    private static HashMap<String, TextureRegion> sBallTextures;
+    private HashMap<String, TextureRegion> mBallTextures;
     /** A map from {@code GameManager.GameCountdown} values to texture regions. */
-    private static HashMap<String, TextureRegion> sGameCountdownTextures;
+    private HashMap<String, TextureRegion> mGameCountdownTextures;
     /** A map from {@code MenuManager.MenuBallOption} values to texture regions. */
-    private static HashMap<String, TextureRegion> sMenuIcons;
+    private HashMap<String, TextureRegion> mMenuIcons;
     /** A map from {@code TextureManager.SystemIcon} values to texture regions. */
-    private static HashMap<String, TextureRegion> sSystemIcons;
+    private HashMap<String, TextureRegion> mSystemIcons;
 
     /** Potential colors of walls in the game. */
     public static final GameColor[] GAME_COLORS = GameColor.values();
@@ -38,9 +38,10 @@ public final class TextureManager {
     /**
      * Loads textures for the application.
      */
-    public static void initialize() {
-        sGameTexture = new Texture(Gdx.files.internal("game_spritesheet.png"));
-        sMenuTexture = new Texture(Gdx.files.internal("menu_spritesheet.png"));
+    public TextureManager() {
+        Gdx.app.debug(TAG, "Initializing");
+        mGameTexture = new Texture(Gdx.files.internal("game_spritesheet.png"));
+        mMenuTexture = new Texture(Gdx.files.internal("menu_spritesheet.png"));
 
         prepareGameTextureRegions();
         prepareMenuTextureRegions();
@@ -49,18 +50,18 @@ public final class TextureManager {
     /**
      * Loads the textures for game objects.
      */
-    private static void prepareGameTextureRegions() {
-        sWallTextures = parseTextureProperties(sGameTexture, loadTextureProperties("walls.txt"));
-        sBallTextures = parseTextureProperties(sGameTexture, loadTextureProperties("balls.txt"));
-        sGameCountdownTextures = parseTextureProperties(sMenuTexture, loadTextureProperties("countdown.txt"));
+    private void prepareGameTextureRegions() {
+        mWallTextures = parseTextureProperties(mGameTexture, loadTextureProperties("walls.txt"));
+        mBallTextures = parseTextureProperties(mGameTexture, loadTextureProperties("balls.txt"));
+        mGameCountdownTextures = parseTextureProperties(mMenuTexture, loadTextureProperties("countdown.txt"));
     }
 
     /**
      * Loads the textures for menu objects.
      */
-    private static void prepareMenuTextureRegions() {
-        sMenuIcons = parseTextureProperties(sMenuTexture, loadTextureProperties("menu.txt"));
-        sSystemIcons = parseTextureProperties(sMenuTexture, loadTextureProperties("system.txt"));
+    private void prepareMenuTextureRegions() {
+        mMenuIcons = parseTextureProperties(mMenuTexture, loadTextureProperties("menu.txt"));
+        mSystemIcons = parseTextureProperties(mMenuTexture, loadTextureProperties("system.txt"));
     }
 
     /**
@@ -128,8 +129,8 @@ public final class TextureManager {
      * @param color color of the wall
      * @return the texture to draw
      */
-    public static TextureRegion getWallTexture(Wall.Side side, GameColor color) {
-        return sWallTextures.get(color.name() + side.name());
+    public TextureRegion getWallTexture(Wall.Side side, GameColor color) {
+        return mWallTextures.get(color.name() + side.name());
     }
 
     /**
@@ -141,8 +142,8 @@ public final class TextureManager {
      * @param topEdge true to get the top edge of the original texture, false to get the right
      * @return the texture to draw
      */
-    public static TextureRegion getWallEdge(Wall.Side side, GameColor color, boolean topEdge) {
-        return sWallTextures.get(color.name() + side.name() + ((topEdge)
+    public TextureRegion getWallEdge(Wall.Side side, GameColor color, boolean topEdge) {
+        return mWallTextures.get(color.name() + side.name() + ((topEdge)
                 ? "Top"
                 : "Bottom") + "Edge");
     }
@@ -153,8 +154,8 @@ public final class TextureManager {
      * @param icon system icon
      * @return icon texture
      */
-    public static TextureRegion getSystemIconTexture(SystemIcon icon) {
-        return sSystemIcons.get(icon.name());
+    public TextureRegion getSystemIconTexture(SystemIcon icon) {
+        return mSystemIcons.get(icon.name());
     }
 
     /**
@@ -163,8 +164,8 @@ public final class TextureManager {
      * @param option main menu option
      * @return icon texture
      */
-    public static TextureRegion getMenuButtonIconTexture(MenuManager.MenuBallOption option) {
-        return sMenuIcons.get(option.name());
+    public TextureRegion getMenuButtonIconTexture(MenuManager.MenuBallOption option) {
+        return mMenuIcons.get(option.name());
     }
 
     /**
@@ -173,8 +174,8 @@ public final class TextureManager {
      * @param color color of the ball
      * @return the texture to draw
      */
-    public static TextureRegion getBallTexture(GameColor color) {
-        return sBallTextures.get(color.name());
+    public TextureRegion getBallTexture(GameColor color) {
+        return mBallTextures.get(color.name());
     }
 
     /**
@@ -183,27 +184,21 @@ public final class TextureManager {
      * @param item position in the countdown
      * @return the texture to draw
      */
-    public static TextureRegion getCountdownTexture(GameManager.GameCountdown item) {
-        return sGameCountdownTextures.get(item.name());
+    public TextureRegion getCountdownTexture(GameManager.GameCountdown item) {
+        return mGameCountdownTextures.get(item.name());
     }
 
     /**
      * Frees resources used by textures in this class.
      */
-    public static void dispose() {
-        sWallTextures = null;
-        sBallTextures = null;
-        sGameCountdownTextures = null;
+    public void dispose() {
+        Gdx.app.debug(TAG, "Disposing");
+        mWallTextures = null;
+        mBallTextures = null;
+        mGameCountdownTextures = null;
 
-        sGameTexture.dispose();
-        sMenuTexture.dispose();
-    }
-
-    /**
-     * Default private constructor.
-     */
-    private TextureManager() {
-        // does nothing
+        mGameTexture.dispose();
+        mMenuTexture.dispose();
     }
 
     /**

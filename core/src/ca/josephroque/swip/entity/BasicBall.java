@@ -82,12 +82,13 @@ public abstract class BasicBall
      * Draws the ball to the screen.
      *
      * @param spriteBatch graphics context to draw to
+     * @param textureManager to get texture to draw
      */
-    public void draw(SpriteBatch spriteBatch) {
+    public void draw(SpriteBatch spriteBatch, TextureManager textureManager) {
         if (isHidden())
             return;
 
-        spriteBatch.draw(TextureManager.getBallTexture(mBallColor),
+        spriteBatch.draw(textureManager.getBallTexture(mBallColor),
                 getX() - getRadius(),
                 getY() - getRadius(),
                 getWidth(),

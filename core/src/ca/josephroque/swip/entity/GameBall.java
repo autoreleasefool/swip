@@ -148,11 +148,15 @@ public class GameBall
      * turn.
      *
      * @param spriteBatch graphics context to draw to
+     * @param textureManager to get texture to draw
      * @param maxTurnLength total number of seconds the current turn will last
      * @param currentTurnLength duration of the current turn
      */
-    public void draw(SpriteBatch spriteBatch, float maxTurnLength, float currentTurnLength) {
-        super.draw(spriteBatch);
+    public void draw(SpriteBatch spriteBatch,
+                     TextureManager textureManager,
+                     float maxTurnLength,
+                     float currentTurnLength) {
+        super.draw(spriteBatch, textureManager);
     }
 
     /**

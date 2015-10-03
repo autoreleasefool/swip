@@ -133,8 +133,9 @@ public class Wall
      * Draws the wall to the screen.
      *
      * @param spriteBatch graphics context to draw to
+     * @param textureManager to get texture to draw
      */
-    public void draw(SpriteBatch spriteBatch) {
+    public void draw(SpriteBatch spriteBatch, TextureManager textureManager) {
         if (mWallSide.ordinal() != sLastWallDrawn + 1)
             throw new IllegalStateException("must draw walls in the natural order determined by Wall.Side");
 
@@ -144,17 +145,18 @@ public class Wall
             sLastWallDrawn = mWallSide.ordinal();
 
         if (mWallSide == Side.Top || mWallSide == Side.Bottom)
-            drawHorizontalWall(spriteBatch);
+            drawHorizontalWall(spriteBatch, textureManager);
         else
-            drawVerticalWall(spriteBatch);
+            drawVerticalWall(spriteBatch, textureManager);
     }
 
     /**
      * Draws a horizontal wall to the screen.
      *
      * @param spriteBatch graphics context to draw to
+     * @param textureManager to get texture to draw
      */
-    private void drawHorizontalWall(SpriteBatch spriteBatch) {
+    private void drawHorizontalWall(SpriteBatch spriteBatch, TextureManager textureManager) {
         final float rotation = -90;
         float verticalOffset =
                 Math.min(1f, Math.max(0f, (-mWallTranslationTime + WALL_TRANSLATION_TIME) / WALL_TRANSLATION_TIME))
@@ -162,7 +164,7 @@ public class Wall
         if (mWallSide == Side.Bottom)
             verticalOffset *= -1;
 
-        spriteBatch.draw(TextureManager.getWallTexture(mWallSide, mWallColor),
+        spriteBatch.draw(textureManager.getWallTexture(mWallSide, mWallColor),
                 getX() + sDefaultWallSize,
                 getY() + sDefaultWallSize + verticalOffset,
                 0,
@@ -172,7 +174,7 @@ public class Wall
                 1,
                 1,
                 rotation);
-        spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, true),
+        spriteBatch.draw(textureManager.getWallEdge(mWallSide, mWallColor, true),
                 getX() + getWidth() - sDefaultWallSize,
                 getY() + sDefaultWallSize + verticalOffset,
                 0,
@@ -182,7 +184,7 @@ public class Wall
                 1,
                 1,
                 rotation);
-        spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, false),
+        spriteBatch.draw(textureManager.getWallEdge(mWallSide, mWallColor, false),
                 getX(),
                 getY() + sDefaultWallSize + verticalOffset,
                 0,
@@ -198,25 +200,26 @@ public class Wall
      * Draws a vertical wall to the screen.
      *
      * @param spriteBatch graphics context to draw to
+     * @param textureManager to get texture to draw
      */
-    private void drawVerticalWall(SpriteBatch spriteBatch) {
+    private void drawVerticalWall(SpriteBatch spriteBatch, TextureManager textureManager) {
         float horizontalOffset =
                 Math.min(1f, Math.max(0f, (-mWallTranslationTime + WALL_TRANSLATION_TIME) / WALL_TRANSLATION_TIME))
                         * sDefaultWallSize;
         if (mWallSide == Side.Left)
             horizontalOffset *= -1;
 
-        spriteBatch.draw(TextureManager.getWallTexture(mWallSide, mWallColor),
+        spriteBatch.draw(textureManager.getWallTexture(mWallSide, mWallColor),
                 getX() + horizontalOffset,
                 getY() + sDefaultWallSize,
                 getWidth(),
                 getHeight() - sDefaultWallSize * 2);
-        spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, true),
+        spriteBatch.draw(textureManager.getWallEdge(mWallSide, mWallColor, true),
                 getX() + horizontalOffset,
                 getY() + getHeight() - sDefaultWallSize,
                 sDefaultWallSize,
                 sDefaultWallSize);
-        spriteBatch.draw(TextureManager.getWallEdge(mWallSide, mWallColor, false),
+        spriteBatch.draw(textureManager.getWallEdge(mWallSide, mWallColor, false),
                 getX() + horizontalOffset,
                 getY(),
                 sDefaultWallSize,

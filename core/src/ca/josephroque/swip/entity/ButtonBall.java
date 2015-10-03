@@ -55,9 +55,10 @@ public class ButtonBall
      * Draws the ball and its icon to the screen.
      *
      * @param spriteBatch graphics context to draw to
+     * @param textureManager to get texture to draw
      */
-    public void draw(SpriteBatch spriteBatch) {
-        super.draw(spriteBatch);
+    public void draw(SpriteBatch spriteBatch, TextureManager textureManager) {
+        super.draw(spriteBatch, textureManager);
 
         if (mButtonIcon != null)
             drawIcon(spriteBatch);

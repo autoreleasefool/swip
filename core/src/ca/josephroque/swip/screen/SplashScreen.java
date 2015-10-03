@@ -39,18 +39,10 @@ public class SplashScreen implements Screen {
     /** Indicates if the process to preload assets has begun. */
     private boolean mPreloadInitiated;
     /** Indicates if the process to preload assets has concluded. */
-    private boolean mPreloadCompleted;
+    private boolean mPreloadCompleted = true;
 
     /** Number of seconds the splash screen has been shown for. */
     private float mSplashTime;
-
-    /** Instance of callback interface when preload process has completed. */
-    private GameScreen.PreloadCallback mPreloadCallback = new GameScreen.PreloadCallback() {
-        @Override
-        public void preloadCompleted() {
-            mPreloadCompleted = true;
-        }
-    };
 
     /**
      * Stores references to parameters.
@@ -94,11 +86,6 @@ public class SplashScreen implements Screen {
      * @param delta number of seconds the last rendering took
      */
     private void tick(float delta) {
-        if (!mPreloadInitiated) {
-            mPreloadInitiated = true;
-            GameScreen.preloadAssets(mPreloadCallback);
-        }
-
         mSplashTime += delta;
         if (mSplashTime >= MINIMUM_SPLASH_TIME && mPreloadCompleted) {
             mPreloadCompleted = false;

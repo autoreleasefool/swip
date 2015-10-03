@@ -14,8 +14,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * Provides high-level game operations.
  */
@@ -30,9 +28,6 @@ public class GameScreen
     private static int sScreenWidth;
     /** Height of the screen. */
     private static int sScreenHeight;
-
-    /** Indicates if the assets have been loaded. */
-    private static final AtomicBoolean ASSETS_LOADED = new AtomicBoolean(false);
 
     /** Allows rendering of graphics on the screen. */
     private SpriteBatch mSpriteBatch;
@@ -49,6 +44,8 @@ public class GameScreen
     /** State of the application prior to it being paused. */
     private GameState mPausedState;
 
+    /** Handles loading and unloading textures. */
+    private TextureManager mTextureManager;
     /** Handles game logic and rendering. */
     private GameManager mGameManager;
     /** Handles main menu events and rendering. */
@@ -143,20 +140,14 @@ public class GameScreen
         mGameInput = new GameInputProcessor();
         Gdx.input.setInputProcessor(mGameInput);
 
-        // Setting up the game and menu
-        mGameManager = new GameManager(mGameCallback);
-        mMenuManager = new MenuManager(mMenuCallback);
+        // Loading assets
+        mTextureManager = new TextureManager();
+        MusicManager.initialize(MusicManager.BackgroundTrack.One);
+        FontManager.initialize();
 
-        synchronized (ASSETS_LOADED) {
-            Gdx.app.debug(TAG, "Show - Checking if assets loaded: " + ASSETS_LOADED.get());
-            if (!ASSETS_LOADED.get()) {
-                Gdx.app.debug(TAG, "Show - assets not loaded, loading.");
-                TextureManager.initialize();
-                MusicManager.initialize(MusicManager.BackgroundTrack.One);
-                FontManager.initialize();
-                ASSETS_LOADED.set(true);
-            }
-        }
+        // Setting up the game and menu
+        mGameManager = new GameManager(mGameCallback, mTextureManager);
+        mMenuManager = new MenuManager(mMenuCallback, mTextureManager);
 
         // Displaying the main menu
         setState(GameState.MainMenu);
@@ -188,11 +179,9 @@ public class GameScreen
 
     @Override
     public void dispose() {
-        ASSETS_LOADED.set(false);
-
         // Disposes resources being used by instances
         mSpriteBatch.dispose();
-        TextureManager.dispose();
+        mTextureManager.dispose();
         mGameManager.dispose();
         mMenuManager.dispose();
         MusicManager.dispose();
@@ -202,6 +191,7 @@ public class GameScreen
         mSpriteBatch = null;
         mGameManager = null;
         mMenuManager = null;
+        mTextureManager = null;
     }
 
     /**
@@ -301,30 +291,6 @@ public class GameScreen
     }
 
     /**
-     * Loads the assets being used for the games.
-     *
-     * @param callback invokes callback methods when preload completes
-     */
-    public static void preloadAssets(final PreloadCallback callback) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (ASSETS_LOADED) {
-                    Gdx.app.debug(TAG, "Preload - Checking if assets loaded: " + ASSETS_LOADED.get());
-                    if (!ASSETS_LOADED.get()) {
-                        Gdx.app.debug(TAG, "Preload - Assets not loaded.");
-                        TextureManager.initialize();
-                        MusicManager.initialize(MusicManager.BackgroundTrack.One);
-                        FontManager.initialize();
-                        ASSETS_LOADED.set(true);
-                    }
-                }
-                callback.preloadCompleted();
-            }
-        }).start();
-    }
-
-    /**
      * Gets the current width of the screen.
      *
      * @return width of the screen
@@ -356,16 +322,5 @@ public class GameScreen
         GamePaused,
         /** Represents the game being over. */
         Ended,
-    }
-
-    /**
-     * Callback interface for when the loading of assets is completed.
-     */
-    public interface PreloadCallback {
-
-        /**
-         * Invoked when the {@code GameScreen} assets have finished loading.
-         */
-        void preloadCompleted();
     }
 }

@@ -39,6 +39,8 @@ public class GameManager {
 
     /** Instance of callback interface. */
     private GameCallback mGameCallback;
+    /** Handles loading and unloading of textures. */
+    private TextureManager mTextureManager;
 
     /** Time that has passed since the game began≈, in seconds. */
     private float mGameCountdown;
@@ -92,9 +94,11 @@ public class GameManager {
      * Sets up a new game manager.
      *
      * @param callback instance of callback interface
+     * @param textureManager instance of texture manager
      */
-    public GameManager(GameCallback callback) {
+    public GameManager(GameCallback callback, TextureManager textureManager) {
         mGameCallback = callback;
+        mTextureManager = textureManager;
 
         Wall.initialize(GameScreen.getScreenWidth(), GameScreen.getScreenHeight());
         mWallColors = new TextureManager.GameColor[Wall.NUMBER_OF_WALLS];
@@ -112,7 +116,7 @@ public class GameManager {
 
         final float pauseButtonSize = Math.min(GameScreen.getScreenWidth(), GameScreen.getScreenHeight())
                 * PAUSE_BUTTON_SCALE;
-        mPauseButton = new Button(TextureManager.getSystemIconTexture(TextureManager.SystemIcon.Pause),
+        mPauseButton = new Button(mTextureManager.getSystemIconTexture(TextureManager.SystemIcon.Pause),
                 0,
                 GameScreen.getScreenHeight() - pauseButtonSize,
                 pauseButtonSize,
@@ -231,12 +235,12 @@ public class GameManager {
      */
     public void draw(GameScreen.GameState gameState, SpriteBatch spriteBatch) {
         if (mCurrentGameBall != null)
-            mCurrentGameBall.draw(spriteBatch, mTurnLength, mTurnDuration);
+            mCurrentGameBall.draw(spriteBatch, mTextureManager, mTurnLength, mTurnDuration);
         for (Wall wall : mPrimaryWalls)
-            wall.draw(spriteBatch);
+            wall.draw(spriteBatch, mTextureManager);
         if (mDrawSecondaryWalls) {
             for (Wall wall : mSecondaryWalls)
-                wall.draw(spriteBatch);
+                wall.draw(spriteBatch, mTextureManager);
         }
 
         switch (gameState) {
@@ -247,7 +251,7 @@ public class GameManager {
                 mPauseButton.draw(spriteBatch);
                 float countdownPosition = mGameCountdown / TIME_UNTIL_GAME_STARTS;
                 TextureRegion countdownIcon
-                        = TextureManager.getCountdownTexture(GameCountdown.getCountdownItem(countdownPosition));
+                        = mTextureManager.getCountdownTexture(GameCountdown.getCountdownItem(countdownPosition));
                 float sizeRatio = countdownIcon.getRegionWidth() / (float) countdownIcon.getRegionHeight();
                 spriteBatch.draw(countdownIcon,
                         GameScreen.getScreenWidth() / 2 - BasicBall.getDefaultBallRadius() * sizeRatio,
@@ -414,18 +418,6 @@ public class GameManager {
         One,
         /** Item which represents GO! in the countdown. */
         Go;
-
-        /** SIze of the enum. */
-        private static final int SIZE = GameCountdown.values().length;
-
-        /**
-         * Gets the size of the enum.
-         *
-         * @return number of {@code GameCountdown}s
-         */
-        public static int getSize() {
-            return SIZE;
-        }
 
         /**
          * Gets a countdown item based on the total percentage of the countdown which has passed.
