@@ -245,6 +245,11 @@ public class GameManager {
 
         switch (gameState) {
             case GamePlaying:
+                FontManager.getDefaultFont()
+                        .draw(spriteBatch,
+                                Integer.toString(mTotalTurns),
+                                mPauseButton.getX() + mPauseButton.getWidth(),
+                                GameScreen.getScreenHeight() - 50);
                 mPauseButton.draw(spriteBatch);
                 break;
             case GameStarting:
