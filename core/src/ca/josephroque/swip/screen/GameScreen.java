@@ -1,6 +1,7 @@
 package ca.josephroque.swip.screen;
 
 import ca.josephroque.swip.input.GameInputProcessor;
+import ca.josephroque.swip.manager.BackgroundManager;
 import ca.josephroque.swip.manager.FontManager;
 import ca.josephroque.swip.manager.GameManager;
 import ca.josephroque.swip.manager.MenuManager;
@@ -50,6 +51,8 @@ public class GameScreen
     private GameManager mGameManager;
     /** Handles main menu events and rendering. */
     private MenuManager mMenuManager;
+    /** Handles drawing of the background panels of the game. */
+    private BackgroundManager mBackgroundManager;
 
     /** The most recent score the user obtained in the game. */
     private int mMostRecentScore;
@@ -148,6 +151,7 @@ public class GameScreen
         // Setting up the game and menu
         mGameManager = new GameManager(mGameCallback, mTextureManager);
         mMenuManager = new MenuManager(mMenuCallback, mTextureManager);
+        mBackgroundManager = new BackgroundManager(mTextureManager);
 
         // Displaying the main menu
         setState(GameState.MainMenu);
@@ -184,6 +188,7 @@ public class GameScreen
         mTextureManager.dispose();
         mGameManager.dispose();
         mMenuManager.dispose();
+        mBackgroundManager.dispose();
         MusicManager.dispose();
         FontManager.dispose();
 
@@ -192,6 +197,7 @@ public class GameScreen
         mGameManager = null;
         mMenuManager = null;
         mTextureManager = null;
+        mBackgroundManager = null;
     }
 
     /**
@@ -227,6 +233,7 @@ public class GameScreen
         mSpriteBatch.setProjectionMatrix(mPrimaryCamera.combined);
         mSpriteBatch.begin();
 
+        mBackgroundManager.draw(mSpriteBatch);
         mGameManager.draw(mGameState, mSpriteBatch);
 
         switch (mGameState) {

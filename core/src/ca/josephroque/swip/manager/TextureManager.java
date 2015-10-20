@@ -20,6 +20,8 @@ public final class TextureManager {
     private Texture mGameTexture;
     /** Primary texture for menu objects. */
     private Texture mMenuTexture;
+    /** Primary texture for background panels. */
+    private Texture mBackgroundTexture;
 
     /** A map from {@code Wall.Side} and {@code TextureManager.Color} values to texture regions. */
     private HashMap<String, TextureRegion> mWallTextures;
@@ -31,6 +33,8 @@ public final class TextureManager {
     private HashMap<String, TextureRegion> mMenuIcons;
     /** A map from {@code TextureManager.SystemIcon} values to texture regions. */
     private HashMap<String, TextureRegion> mSystemIcons;
+    /** A map from {@code TextureManager.Background} values to texture regions. */
+    private HashMap<String, TextureRegion> mBackgroundTextures;
 
     /** Potential colors of walls in the game. */
     public static final GameColor[] GAME_COLORS = GameColor.values();
@@ -42,6 +46,7 @@ public final class TextureManager {
         Gdx.app.debug(TAG, "Initializing");
         mGameTexture = new Texture(Gdx.files.internal("game_spritesheet.png"));
         mMenuTexture = new Texture(Gdx.files.internal("menu_spritesheet.png"));
+        mBackgroundTexture = new Texture(Gdx.files.internal("bg_spritesheet.png"));
 
         prepareGameTextureRegions();
         prepareMenuTextureRegions();
@@ -54,6 +59,7 @@ public final class TextureManager {
         mWallTextures = parseTextureProperties(mGameTexture, loadTextureProperties("walls.txt"));
         mBallTextures = parseTextureProperties(mGameTexture, loadTextureProperties("balls.txt"));
         mGameCountdownTextures = parseTextureProperties(mMenuTexture, loadTextureProperties("countdown.txt"));
+        mBackgroundTextures = parseTextureProperties(mBackgroundTexture, loadTextureProperties("backgrounds.txt"));
     }
 
     /**
@@ -189,6 +195,16 @@ public final class TextureManager {
     }
 
     /**
+     * Gets the texture of a particular background panel.
+     *
+     * @param bg background panel
+     * @return the texture to draw
+     */
+    public TextureRegion getBackgroundTexture(Background bg) {
+        return mBackgroundTextures.get(bg.name());
+    }
+
+    /**
      * Frees resources used by textures in this class.
      */
     public void dispose() {
@@ -196,9 +212,13 @@ public final class TextureManager {
         mWallTextures = null;
         mBallTextures = null;
         mGameCountdownTextures = null;
+        mMenuIcons = null;
+        mSystemIcons = null;
+        mBackgroundTextures = null;
 
         mGameTexture.dispose();
         mMenuTexture.dispose();
+        mBackgroundTexture.dispose();
     }
 
     /**
@@ -229,6 +249,14 @@ public final class TextureManager {
             this.mWidth = width;
             this.mHeight = height;
         }
+    }
+
+    /**
+     * Available background textures.
+     */
+    public enum Background {
+        /** The default game background texture. */
+        Default,
     }
 
     /**
