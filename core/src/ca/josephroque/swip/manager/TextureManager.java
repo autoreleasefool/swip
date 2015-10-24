@@ -5,7 +5,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Retrieves textures for displaying games objects.
@@ -27,6 +29,8 @@ public final class TextureManager {
     private HashMap<String, TextureRegion> mWallTextures;
     /** A map from {@code TextureManager.Color} values to texture regions. */
     private HashMap<String, TextureRegion> mBallTextures;
+    /** An array of texture regions of shadows to overlay balls as the timer progresses. */
+    private TextureRegion[] mBallOverlayTextures;
     /** A map from {@code GameManager.GameCountdown} values to texture regions. */
     private HashMap<String, TextureRegion> mGameCountdownTextures;
     /** A map from {@code MenuManager.MenuBallOption} values to texture regions. */
@@ -58,6 +62,7 @@ public final class TextureManager {
     private void prepareGameTextureRegions() {
         mWallTextures = parseTextureProperties(mGameTexture, loadTextureProperties("walls.txt"));
         mBallTextures = parseTextureProperties(mGameTexture, loadTextureProperties("balls.txt"));
+        mBallOverlayTextures = parseTexturePropertiesArray(mGameTexture, "ball_overlays.txt");
         mGameCountdownTextures = parseTextureProperties(mMenuTexture, loadTextureProperties("countdown.txt"));
         mBackgroundTextures = parseTextureProperties(mBackgroundTexture, loadTextureProperties("backgrounds.txt"));
     }
@@ -93,6 +98,41 @@ public final class TextureManager {
         }
 
         return textureRegions;
+    }
+
+    /**
+     * Creates an array of {@code TextureRegion} objects by using {@code fileHandle} and {@code texture} to
+     * create the instances, then adding them in the order defined to an array.
+     *
+     * @param texture texture source for {@code TextureRegion}
+     * @param fileHandle file to parse
+     * @return an array of {@code TextureRegion} objects
+     */
+    private static TextureRegion[] parseTexturePropertiesArray(Texture texture, String fileHandle) {
+        final byte propertyX = 0;
+        final byte propertyY = 1;
+        final byte propertyWidth = 2;
+        final byte propertyHeight = 3;
+
+        final String rawFile = Gdx.files.internal("texture_properties/" + fileHandle).readString();
+        final String[] lines = rawFile.split("\n");
+        List<TextureRegion> regionList = new ArrayList<>(lines.length);
+
+        for (String line : lines) {
+            if (line != null && line.length() > 0 && line.charAt(0) != '#') {
+                String[] rawProperties = line.split("\\s+");
+                TextureRegion textureRegion = new TextureRegion(texture,
+                        Integer.parseInt(rawProperties[propertyX]),
+                        Integer.parseInt(rawProperties[propertyY]),
+                        Integer.parseInt(rawProperties[propertyWidth]),
+                        Integer.parseInt(rawProperties[propertyHeight]));
+                regionList.add(textureRegion);
+            }
+        }
+
+        TextureRegion[] regionArray = new TextureRegion[regionList.size()];
+        regionList.toArray(regionArray);
+        return regionArray;
     }
 
     /**
@@ -185,6 +225,19 @@ public final class TextureManager {
     }
 
     /**
+     * Gets the texture of a particular section of the ball overlay, where 0 is the beginning of the shadow shape,
+     * and {@code getTotalBallShadowParts()} is the end of the shadow shape.
+     *
+     * @param index index of shadow overlay piece
+     * @return the texture to draw
+     */
+    public TextureRegion getBallOverlayTexture(int index) {
+        if (index < 0 || index > getTotalBallShadowParts())
+            throw new IndexOutOfBoundsException("Must be between 0 and getTotalBallShadowParts()");
+        return mBallOverlayTextures[index];
+    }
+
+    /**
      * Gets the texture of a particular icon for the initial game countdown.
      *
      * @param item position in the countdown
@@ -219,6 +272,15 @@ public final class TextureManager {
         mGameTexture.dispose();
         mMenuTexture.dispose();
         mBackgroundTexture.dispose();
+    }
+
+    /**
+     * The total number of parts required to fill the ball overlay shadow.
+     *
+     * @return size of {@code mBallOverlayTextures}
+     */
+    public int getTotalBallShadowParts() {
+        return mBallOverlayTextures.length;
     }
 
     /**

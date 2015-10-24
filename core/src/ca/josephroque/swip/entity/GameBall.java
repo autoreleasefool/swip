@@ -2,7 +2,6 @@ package ca.josephroque.swip.entity;
 
 import ca.josephroque.swip.manager.TextureManager;
 import ca.josephroque.swip.input.GameInputProcessor;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 /**
@@ -14,14 +13,6 @@ public class GameBall
     /** Identifies output from this class in the logcat. */
     @SuppressWarnings("unused")
     private static final String TAG = "GameBall";
-
-    /** Maximum number of degrees an overlay can cover - 360 degrees (i.e. a circle). */
-    private static final float MAX_OVERLAY_DEGREES = 360f;
-    /** Degree to start drawing overlay from. */
-    private static final float OVERLAY_STARTING_DEGREE = 90f;
-
-    /** Color of the overlay to represent time remaining in a turn. */
-    private static final Color BALL_TIMER_COLOR = new Color(0, 0, 0, 0.4f);
 
     /** Indicates the walls which the ball can pass through. */
     private final boolean[] mPassableWalls;
@@ -157,6 +148,16 @@ public class GameBall
                      float maxTurnLength,
                      float currentTurnLength) {
         super.draw(spriteBatch, textureManager);
+
+        final int shadowsVisible = textureManager.getTotalBallShadowParts() - 1
+                - (int) ((currentTurnLength / maxTurnLength * 100) / (100 / textureManager.getTotalBallShadowParts()));
+        for (int i = textureManager.getTotalBallShadowParts() - 1; i >= shadowsVisible; i--) {
+            spriteBatch.draw(textureManager.getBallOverlayTexture(i),
+                    getX() - getRadius(),
+                    getY() - getRadius(),
+                    getWidth(),
+                    getHeight());
+        }
     }
 
     /**
